@@ -2,8 +2,8 @@
   <div class="landing-page">
     <div class="hero-section">
       <div class="hero-content">
-        <h1 class="hero-title">Bem-vindo ao Projeto Tibia</h1>
-        <p class="hero-subtitle">Sua fonte completa de informações e ferramentas para o mundo de Tibia</p>
+        <h1 class="hero-title">Bem-vindo ao Tibia Hub</h1>
+        <p class="hero-subtitle">Um hub completo de ferramentas para jogadores de Tibia — de calculadoras de imbuements à busca por party, tudo em um só lugar.</p>
         <button class="cta-button" @click="goToMenu">Explorar Projeto</button>
       </div>
     </div>
@@ -32,25 +32,19 @@
       <div class="container">
         <h2 class="section-title">Principais Funcionalidades</h2>
         <div class="features-grid">
-          <div class="feature-item">
-            <div class="feature-icon">⚔️</div>
+          <div class="feature-item" @click="goToImbuiments">
+            <div class="feature-icon">
+              <img src="../assets/images/general/imbuiment.gif" alt="Imbuiments" class="feature-icon-img" />
+            </div>
             <h3>Calculadora de Imbuements</h3>
-            <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Fermentum in pellentesque facilisi congue nunc.</p>
+            <p>Calcule os custos exatos de imbuements, compare preços de ingredientes e otimize suas builds com nossa calculadora completa.</p>
           </div>
-          <div class="feature-item">
-            <div class="feature-icon">🗺️</div>
-            <h3>Guias de Quests</h3>
-            <p>Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia curae; Donec velit neque.</p>
-          </div>
-          <div class="feature-item">
-            <div class="feature-icon">📊</div>
-            <h3>Ferramentas Avançadas</h3>
-            <p>Mauris blandit aliquet elit, eget tincidunt nibh pulvinar a. Vestibulum ac diam sit amet quam vehicula.</p>
-          </div>
-          <div class="feature-item">
-            <div class="feature-icon">🏆</div>
-            <h3>Conquistas</h3>
-            <p>Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas.</p>
+          <div class="feature-item" @click="goToPartyFinder">
+            <div class="feature-icon">
+              <img src="../assets/images/general/party.gif" alt="Party Finder" class="feature-icon-img" />
+            </div>
+            <h3>Party Finder</h3>
+            <p>Encontre jogadores compatíveis com seu level, cadastre sua disponibilidade e forme parties de forma rápida e eficiente.</p>
           </div>
         </div>
       </div>
@@ -72,6 +66,12 @@ export default {
   methods: {
     goToMenu() {
       this.$router.push('/menu')
+    },
+    goToImbuiments() {
+      this.$router.push('/imbuiments')
+    },
+    goToPartyFinder() {
+      this.$router.push('/party-finder')
     }
   }
 }
@@ -243,6 +243,7 @@ export default {
   border-radius: 16px;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   box-shadow: var(--shadow-md);
+  cursor: pointer;
 }
 
 .feature-item:hover {
@@ -255,6 +256,12 @@ export default {
   font-size: 3rem;
   margin-bottom: 1rem;
   display: block;
+}
+
+.feature-icon-img {
+  width: 48px;
+  height: 48px;
+  object-fit: contain;
 }
 
 .feature-item h3 {
