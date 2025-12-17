@@ -23,7 +23,9 @@
         <div class="section-header">
           <h2>Jogadores Disponíveis</h2>
           <div class="section-stats">
-            <span>{{ filteredPlayers.length }} jogador(es) disponível(eis)</span>
+            <span v-if="loadingPlayers">🔄 Carregando...</span>
+            <span v-else-if="firebaseConnected">🟢 {{ filteredPlayers.length }} jogador(es) online</span>
+            <span v-else>🔴 Modo offline - {{ filteredPlayers.length }} jogador(es)</span>
           </div>
         </div>
 
@@ -98,6 +100,13 @@
               <div class="player-actions">
                 <button class="btn-primary btn-small" @click="contactPlayer(player)">
                   Entrar em Contato
+                </button>
+                <button 
+                  v-if="canRemovePlayer(player)" 
+                  class="btn-danger btn-small" 
+                  @click="removePlayer(player)"
+                >
+                  Remover
                 </button>
                 <span class="registered-time">{{ formatTime(player.registeredAt) }}</span>
               </div>
@@ -202,11 +211,19 @@
 </template>
 
 <script>
+import { PartyFinderService } from '../services/partyFinderService.js'
+
 export default {
   name: 'PartyFinder',
   data() {
     return {
       showRegistrationModal: false,
+      loadingPlayers: true,
+      firebaseConnected: false,
+      loading: false,
+      characterError: '',
+      characterData: null,
+      unsubscribeFromFirebase: null,
       loading: false,
       characterError: '',
       characterData: null,
@@ -261,7 +278,68 @@ export default {
       return [...new Set(this.players.map(player => player.world))].sort()
     }
   },
+  async mounted() {
+    await this.initializeFirebase()
+  },
+  beforeUnmount() {
+    if (this.unsubscribeFromFirebase) {
+      this.unsubscribeFromFirebase()
+    }
+  },
   methods: {
+    async initializeFirebase() {
+      try {
+        this.loadingPlayers = true
+        
+        // Set up real-time listener
+        this.unsubscribeFromFirebase = PartyFinderService.onPlayersChange((players) => {
+          this.players = players
+          this.firebaseConnected = true
+          this.loadingPlayers = false
+        })
+        
+      } catch (error) {
+        console.error('Firebase connection failed, using localStorage fallback:', error)
+        this.firebaseConnected = false
+        this.loadingPlayers = false
+        this.loadPlayersFromStorage() // Fallback to localStorage
+      }
+    },
+    loadPlayersFromStorage() {
+      try {
+        const savedPlayers = localStorage.getItem('partyFinderPlayers')
+        if (savedPlayers) {
+          const parsedPlayers = JSON.parse(savedPlayers)
+          // Convert registeredAt back to Date objects and filter old entries
+          const now = new Date()
+          const validPlayers = parsedPlayers
+            .map(player => ({
+              ...player,
+              registeredAt: new Date(player.registeredAt)
+            }))
+            .filter(player => {
+              // Remove players older than 24 hours
+              const hoursDiff = (now - player.registeredAt) / (1000 * 60 * 60)
+              return hoursDiff < 24
+            })
+          
+          this.players = validPlayers
+          // Save cleaned list back to storage
+          this.savePlayersToStorage()
+        }
+      } catch (error) {
+        console.error('Error loading players from storage:', error)
+        this.players = []
+      }
+    },
+
+    savePlayersToStorage() {
+      try {
+        localStorage.setItem('partyFinderPlayers', JSON.stringify(this.players))
+      } catch (error) {
+        console.error('Error saving players to storage:', error)
+      }
+    },
     openRegistrationModal() {
       this.showRegistrationModal = true
     },
@@ -308,7 +386,7 @@ export default {
       }
     },
 
-    registerPlayer() {
+    async registerPlayer() {
       if (!this.characterData || this.newPlayer.availability.length === 0) {
         alert('Por favor, busque um personagem válido e selecione ao menos um período de disponibilidade.')
         return
@@ -322,23 +400,47 @@ export default {
       }
 
       const player = {
-        id: Date.now(),
         name: this.characterData.name,
         level: this.characterData.level,
         vocation: this.characterData.vocation,
         world: this.characterData.world,
         guild: this.characterData.guild,
-        availability: [...this.newPlayer.availability].sort((a, b) => a - b),
-        contactInfo: this.newPlayer.contactInfo,
-        notes: this.newPlayer.notes || null,
-        registeredAt: new Date()
+        availability: [...this.newPlayer.availability].sort(),
+        contactInfo: this.newPlayer.contactInfo || null,
+        notes: this.newPlayer.notes || null
       }
 
-      this.players.unshift(player)
-      this.resetForm()
-      this.showRegistrationModal = false
-
-      alert('Disponibilidade cadastrada com sucesso!')
+      try {
+        this.loading = true
+        
+        if (this.firebaseConnected) {
+          // Use Firebase
+          await PartyFinderService.addPlayer(player)
+        } else {
+          // Fallback to localStorage
+          const playerWithId = { 
+            id: Date.now(), 
+            ...player, 
+            registeredAt: new Date() 
+          }
+          this.players.unshift(playerWithId)
+          this.savePlayersToStorage()
+          
+          const myPlayers = JSON.parse(localStorage.getItem('myRegisteredPlayers') || '[]')
+          myPlayers.push(playerWithId.id)
+          localStorage.setItem('myRegisteredPlayers', JSON.stringify(myPlayers))
+        }
+        
+        this.resetForm()
+        this.showRegistrationModal = false
+        alert('Disponibilidade cadastrada com sucesso!')
+        
+      } catch (error) {
+        console.error('Error registering player:', error)
+        alert('Erro ao cadastrar. Tente novamente!')
+      } finally {
+        this.loading = false
+      }
     },
 
     resetForm() {
@@ -354,6 +456,43 @@ export default {
 
     contactPlayer(player) {
       alert(`Entrando em contato com ${player.name}!\nContato: ${player.contactInfo}`)
+    },
+
+    canRemovePlayer(player) {
+      if (this.firebaseConnected) {
+        return PartyFinderService.canRemovePlayer(player.id)
+      } else {
+        // Fallback to localStorage
+        const myPlayers = JSON.parse(localStorage.getItem('myRegisteredPlayers') || '[]')
+        return myPlayers.includes(player.id)
+      }
+    },
+
+    async removePlayer(player) {
+      if (!confirm(`Remover ${player.name} da lista de disponíveis?`)) {
+        return
+      }
+      
+      try {
+        if (this.firebaseConnected) {
+          // Use Firebase
+          await PartyFinderService.removePlayer(player.id)
+        } else {
+          // Fallback to localStorage
+          this.players = this.players.filter(p => p.id !== player.id)
+          this.savePlayersToStorage()
+          
+          const myPlayers = JSON.parse(localStorage.getItem('myRegisteredPlayers') || '[]')
+          const updatedMyPlayers = myPlayers.filter(id => id !== player.id)
+          localStorage.setItem('myRegisteredPlayers', JSON.stringify(updatedMyPlayers))
+        }
+        
+        alert('Disponibilidade removida!')
+        
+      } catch (error) {
+        console.error('Error removing player:', error)
+        alert('Erro ao remover. Tente novamente!')
+      }
     },
 
     formatTime(date) {
@@ -687,6 +826,19 @@ export default {
   background: var(--bg-hover);
   border-color: var(--accent-gold);
   color: var(--text-primary);
+}
+
+.btn-danger {
+  background: rgba(239, 68, 68, 0.2);
+  color: #ef4444;
+  border: 2px solid #ef4444;
+}
+
+.btn-danger:hover {
+  background: #ef4444;
+  color: white;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(239, 68, 68, 0.3);
 }
 
 .btn-small {
