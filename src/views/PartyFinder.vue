@@ -7,96 +7,89 @@
 
     <div class="party-finder-content">
       <!-- Player Registration Section -->
-      <div class="registration-section">
-        <div class="section-header">
-          <h2>Cadastrar Disponibilidade</h2>
-          <button class="btn-primary" @click="openRegistrationModal">
-            ➕ Cadastrar Disponibilidade
+      <div class="registration-section-compact">
+        <div class="compact-content">
+          <div class="compact-text">
+            <h3>Cadastrar Disponibilidade</h3>
+            <p>Apareça na lista de jogadores disponíveis</p>
+          </div>
+          <button class="btn-primary-compact" @click="openRegistrationModal">
+            ➕ Cadastrar
           </button>
         </div>
-        <p class="section-description">Cadastre-se para aparecer na lista de jogadores disponíveis e encontrar party mais facilmente!</p>
       </div>
 
       <!-- Available Players Section -->
-      <div class="players-section">
-        <div class="section-header">
-          <h2>Jogadores Disponíveis</h2>
-          <div class="section-stats">
-            <span v-if="loadingPlayers">🔄 Carregando...</span>
-            <span v-else-if="firebaseConnected">🟢 {{ filteredPlayers.length }} jogador(es) online</span>
-            <span v-else>🔴 Modo offline - {{ filteredPlayers.length }} jogador(es)</span>
+      <div class="players-section-compact">
+        <div class="players-header-compact">
+          <div class="players-title-section">
+            <h2>👥 Jogadores Disponíveis</h2>
+            <div class="section-stats-compact">
+              <span v-if="loadingPlayers">🔄 Carregando...</span>
+              <span v-else-if="firebaseConnected">🟢 {{ filteredPlayers.length }} online</span>
+              <span v-else>🔴 {{ filteredPlayers.length }} offline</span>
+            </div>
           </div>
         </div>
         
-        <div class="party-search-section">
-          <h3 class="search-title">🔍 Buscar Party Compatível</h3>
-          <div class="search-form">
-            <div class="search-row">
-              <div class="search-field">
-                <label for="myLevelInput">Meu Level:</label>
-                <input 
-                  type="number" 
-                  id="myLevelInput"
-                  v-model.number="partySearch.myLevel" 
-                  placeholder="Ex: 130"
-                  class="level-input"
-                  min="1"
-                  max="2000"
-                />
-              </div>
-              
-              <div class="search-field vocations-field">
-                <label>Vocações desejadas:</label>
-                <div class="vocation-checkboxes">
-                  <label class="vocation-checkbox">
-                    <input type="checkbox" value="Elite Knight" v-model="partySearch.desiredVocations" />
-                    <span>EK</span>
-                  </label>
-                  <label class="vocation-checkbox">
-                    <input type="checkbox" value="Royal Paladin" v-model="partySearch.desiredVocations" />
-                    <span>RP</span>
-                  </label>
-                  <label class="vocation-checkbox">
-                    <input type="checkbox" value="Elder Druid" v-model="partySearch.desiredVocations" />
-                    <span>ED</span>
-                  </label>
-                  <label class="vocation-checkbox">
-                    <input type="checkbox" value="Master Sorcerer" v-model="partySearch.desiredVocations" />
-                    <span>MS</span>
-                  </label>
-                </div>
+        <div class="party-search-compact">
+          <div class="search-inline">
+            <div class="search-input-group">
+              <label for="myLevelInput">🔍 Buscar por Level:</label>
+              <input 
+                type="number" 
+                id="myLevelInput"
+                v-model.number="partySearch.myLevel" 
+                placeholder="Ex: 130"
+                class="level-input-compact"
+                min="1"
+                max="2000"
+              />
+            </div>
+            
+            <div class="vocations-inline">
+              <span class="voc-label">Vocações:</span>
+              <div class="vocation-checks-inline">
+                <label class="voc-check">
+                  <input type="checkbox" value="Elite Knight" v-model="partySearch.desiredVocations" />
+                  <span>EK</span>
+                </label>
+                <label class="voc-check">
+                  <input type="checkbox" value="Royal Paladin" v-model="partySearch.desiredVocations" />
+                  <span>RP</span>
+                </label>
+                <label class="voc-check">
+                  <input type="checkbox" value="Elder Druid" v-model="partySearch.desiredVocations" />
+                  <span>ED</span>
+                </label>
+                <label class="voc-check">
+                  <input type="checkbox" value="Master Sorcerer" v-model="partySearch.desiredVocations" />
+                  <span>MS</span>
+                </label>
               </div>
             </div>
             
-            <div class="search-actions">
+            <div class="search-buttons-inline">
               <button 
                 @click="applyPartySearch" 
-                class="btn-search" 
+                class="btn-search-compact" 
                 :disabled="!partySearch.myLevel"
               >
-                🔍 Buscar Compatíveis
+                Buscar
               </button>
               <button 
                 @click="clearPartySearch" 
-                class="btn-clear-search"
+                class="btn-clear-compact"
                 v-if="isPartySearchActive"
               >
-                ✕ Limpar Busca
+                ✕
               </button>
             </div>
-            
-            <div v-if="partySearch.applied && levelRange" class="search-results-info">
-              <div class="compatibility-info">
-                <span class="my-level">Seu Level: {{ partySearch.myLevel }}</span>
-                <span class="level-range">Compatível: {{ levelRange.min }} - {{ levelRange.max }}</span>
-                <span v-if="partySearch.desiredVocations.length > 0" class="desired-vocations">
-                  Vocações: {{ partySearch.desiredVocations.join(', ') }}
-                </span>
-              </div>
-              <div class="results-count">
-                <span class="found-count">{{ compatiblePlayersCount }} jogador(es) encontrado(s)</span>
-              </div>
-            </div>
+          </div>
+          
+          <div v-if="partySearch.applied && levelRange" class="search-results-compact">
+            <span class="compatibility-text">Compatível: Level {{ levelRange.min }}-{{ levelRange.max }}</span>
+            <span class="found-count-compact">{{ compatiblePlayersCount }} encontrado(s)</span>
           </div>
         </div>
         
@@ -128,7 +121,7 @@
           </div>
         </div>
 
-        <div class="players-list">
+        <div class="players-list" :class="{ 'search-active': isPartySearchActive }">
           <div class="list-header">
             <div class="col-name">Personagem</div>
             <div class="col-level">Level</div>
@@ -798,13 +791,277 @@ export default {
   gap: 3rem;
 }
 
-.registration-section,
+.registration-section {
+  background: var(--bg-secondary);
+  border-radius: 16px;
+  padding: 2rem;
+  border: 2px solid var(--border-color);
+  box-shadow: var(--shadow-lg);
+}
+
+.registration-section-compact {
+  background: linear-gradient(135deg, var(--bg-secondary) 0%, rgba(245, 158, 11, 0.05) 100%);
+  border-radius: 12px;
+  padding: 1rem 1.5rem;
+  border: 2px solid var(--accent-gold);
+  box-shadow: var(--shadow-md);
+  margin-bottom: 1.5rem;
+}
+
+.compact-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.compact-text h3 {
+  color: var(--accent-gold);
+  font-size: 1.1rem;
+  margin: 0 0 0.25rem 0;
+  font-weight: 600;
+}
+
+.compact-text p {
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+  margin: 0;
+}
+
+.btn-primary-compact {
+  background: var(--gradient-primary);
+  color: white;
+  border: none;
+  padding: 0.6rem 1.2rem;
+  border-radius: 8px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 0.85rem;
+  white-space: nowrap;
+}
+
+.btn-primary-compact:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-glow);
+}
+
+@media (max-width: 768px) {
+  .compact-content {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.75rem;
+  }
+  
+  .btn-primary-compact {
+    align-self: stretch;
+    text-align: center;
+  }
+}
+
 .players-section {
   background: var(--bg-secondary);
   border-radius: 16px;
   padding: 2rem;
   border: 2px solid var(--border-color);
   box-shadow: var(--shadow-lg);
+  min-height: 400px;
+}
+
+.players-section-compact {
+  background: var(--bg-secondary);
+  border-radius: 12px;
+  padding: 1.5rem;
+  border: 2px solid var(--border-color);
+  box-shadow: var(--shadow-lg);
+}
+
+.players-header-compact {
+  margin-bottom: 1.5rem;
+}
+
+.players-title-section {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+}
+
+.players-title-section h2 {
+  background: var(--gradient-primary);
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  font-size: 1.3rem;
+  margin: 0;
+}
+
+.section-stats-compact {
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+
+/* Compact Search Styles */
+.party-search-compact {
+  background: rgba(59, 130, 246, 0.05);
+  border: 1px solid #3b82f6;
+  border-radius: 10px;
+  padding: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.search-inline {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.search-input-group {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.search-input-group label {
+  color: #3b82f6;
+  font-weight: 500;
+  font-size: 0.85rem;
+  white-space: nowrap;
+}
+
+.level-input-compact {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  padding: 0.4rem 0.7rem;
+  color: var(--text-primary);
+  font-size: 0.85rem;
+  width: 80px;
+}
+
+.vocations-inline {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.voc-label {
+  color: #3b82f6;
+  font-weight: 500;
+  font-size: 0.85rem;
+  white-space: nowrap;
+}
+
+.vocation-checks-inline {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.voc-check {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  cursor: pointer;
+}
+
+.voc-check input {
+  accent-color: #3b82f6;
+}
+
+.voc-check span {
+  color: var(--text-primary);
+  font-size: 0.8rem;
+  font-weight: 500;
+}
+
+.search-buttons-inline {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.btn-search-compact {
+  background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+  color: white;
+  border: none;
+  padding: 0.4rem 1rem;
+  border-radius: 6px;
+  font-weight: 500;
+  cursor: pointer;
+  font-size: 0.85rem;
+  transition: all 0.3s ease;
+}
+
+.btn-search-compact:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+}
+
+.btn-search-compact:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.btn-clear-compact {
+  background: rgba(239, 68, 68, 0.2);
+  color: #ef4444;
+  border: 1px solid #ef4444;
+  padding: 0.4rem 0.6rem;
+  border-radius: 6px;
+  font-weight: 500;
+  cursor: pointer;
+  font-size: 0.85rem;
+  transition: all 0.3s ease;
+}
+
+.btn-clear-compact:hover {
+  background: #ef4444;
+  color: white;
+}
+
+.search-results-compact {
+  margin-top: 0.75rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid rgba(59, 130, 246, 0.2);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.compatibility-text {
+  color: var(--accent-green);
+  font-weight: 500;
+  font-size: 0.85rem;
+}
+
+.found-count-compact {
+  color: var(--accent-green);
+  font-weight: 600;
+  font-size: 0.85rem;
+}
+
+@media (max-width: 768px) {
+  .search-inline {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 1rem;
+  }
+  
+  .search-input-group,
+  .vocations-inline {
+    justify-content: space-between;
+  }
+  
+  .search-buttons-inline {
+    justify-content: center;
+  }
+  
+  .search-results-compact {
+    flex-direction: column;
+    gap: 0.5rem;
+    text-align: center;
+  }
 }
 
 .section-header {
@@ -1141,6 +1398,23 @@ export default {
   align-items: flex-start;
 }
 
+@media (max-width: 768px) {
+  .search-row {
+    flex-direction: column;
+    gap: 1rem;
+  }
+  
+  .vocation-checkboxes {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.5rem;
+  }
+  
+  .search-actions {
+    flex-direction: column;
+    align-items: center;
+  }
+}
+
 .search-field {
   display: flex;
   flex-direction: column;
@@ -1151,6 +1425,23 @@ export default {
   color: #3b82f6;
   font-weight: 600;
   font-size: 0.9rem;
+}
+
+.level-input {
+  background: var(--bg-secondary);
+  border: 2px solid var(--border-color);
+  border-radius: 8px;
+  padding: 0.75rem 1rem;
+  color: var(--text-primary);
+  font-size: 0.9rem;
+  transition: all 0.3s ease;
+  width: 120px;
+}
+
+.level-input:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
 }
 
 .vocations-field {
@@ -1288,7 +1579,13 @@ export default {
   background: var(--bg-tertiary);
   border-radius: 12px;
   border: 2px solid var(--border-color);
-  overflow: hidden;
+  overflow: visible;
+  min-height: 200px;
+}
+
+.players-list.search-active {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
 }
 
 .list-header {
