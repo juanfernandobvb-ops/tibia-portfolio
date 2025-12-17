@@ -1,0 +1,101 @@
+<template>
+  <div class="content-container">
+    <h2 class="page-title">Tópicos Importantes</h2>
+    <div class="topics-grid">
+      <div class="topic-card" @click="navigateTo('imbuiments')">
+        <img src="../assets/images/general/imbuiment.gif" alt="Imbuiments" class="topic-icon-img" />
+        <div class="topic-name">Imbuiments</div>
+      </div>
+      <div class="topic-card" @click="navigateTo('quests')">
+        <img src="../assets/images/general/quest.gif" alt="Quests" class="topic-icon-img" />
+        <div class="topic-name">Quests</div>
+      </div>
+      <div class="topic-card" @click="navigateTo('teste3')">
+        <div class="topic-icon">🐉</div>
+        <div class="topic-name">Teste 3</div>
+      </div>
+      <div class="topic-card" @click="navigateTo('teste4')">
+        <div class="topic-icon">🏆</div>
+        <div class="topic-name">Teste 4</div>
+      </div>
+      <div class="topic-card" @click="navigateTo('teste5')">
+        <div class="topic-icon">🗺️</div>
+        <div class="topic-name">Teste 5</div>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script>
+export default {
+  name: 'HomePage',
+  methods: {
+    navigateTo(page) {
+      this.$router.push(`/${page}`)
+    }
+  }
+}
+</script>
+
+<style scoped>
+.content-container {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.page-title {
+  color: var(--accent-gold);
+  font-size: 1.8rem;
+  margin-bottom: 2rem;
+  padding-bottom: 1rem;
+  border-bottom: 2px solid var(--accent-primary);
+  font-weight: 600;
+}
+
+.topics-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 1.5rem;
+  padding: 1rem 0;
+}
+
+.topic-card {
+  background-color: var(--bg-secondary);
+  border: 2px solid var(--border-color);
+  border-radius: 8px;
+  padding: 2rem 1.5rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.topic-card:hover {
+  transform: translateY(-4px);
+  border-color: var(--accent-gold);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+  background-color: var(--bg-tertiary);
+}
+
+.topic-icon {
+  font-size: 3rem;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+}
+
+.topic-icon-img {
+  width: 64px;
+  height: 64px;
+  object-fit: contain;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+}
+
+.topic-name {
+  color: var(--text-primary);
+  font-size: 1rem;
+  font-weight: 500;
+  text-align: center;
+}
+</style>

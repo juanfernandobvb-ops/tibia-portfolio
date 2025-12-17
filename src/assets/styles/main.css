@@ -1,0 +1,142 @@
+:root {
+  /* Backgrounds - Medieval/Gaming inspired */
+  --bg-primary: #0a0a0a;          /* Deep black for main background */
+  --bg-secondary: #141318;        /* Dark purple-tinted for cards */
+  --bg-tertiary: #1e1c2a;         /* Slightly lighter for interactive elements */
+  --bg-hover: #252238;            /* Subtle hover state */
+  
+  /* Text colors - High contrast for readability */
+  --text-primary: #f8f9fa;        /* Pure white for main text */
+  --text-secondary: #adb5bd;      /* Light gray for secondary text */
+  --text-muted: #868e96;          /* Muted for less important text */
+  
+  /* Tibia-inspired accent colors */
+  --accent-primary: #8b5cf6;      /* Royal purple - magic/mystical */
+  --accent-secondary: #a78bfa;    /* Lighter purple for hover */
+  --accent-gold: #f59e0b;         /* Warmer gold - treasure/rewards */
+  --accent-gold-dark: #d97706;    /* Darker gold for active states */
+  --accent-blue: #3b82f6;         /* Mana blue */
+  --accent-green: #10b981;        /* Health green */
+  --accent-red: #ef4444;          /* Danger/HP red */
+  
+  /* Borders and shadows */
+  --border-color: #2a2a2e;        /* Subtle borders */
+  --border-accent: #404048;       /* More visible borders */
+  --border-glow: #6366f1;         /* Glowing borders for focus */
+  
+  /* Interactive states */
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.4);
+  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.5);
+  --shadow-lg: 0 10px 25px rgba(0, 0, 0, 0.6);
+  --shadow-glow: 0 0 20px rgba(139, 92, 246, 0.3);
+  
+  /* Gradients for modern touch */
+  --gradient-primary: linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%);
+  --gradient-gold: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+  --gradient-dark: linear-gradient(135deg, #141318 0%, #1e1c2a 100%);
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
+  background: var(--gradient-dark);
+  color: var(--text-primary);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
+}
+
+#app {
+  width: 100%;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Utility classes for consistent theming */
+.card {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  box-shadow: var(--shadow-md);
+}
+
+.card-hover {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.card-hover:hover {
+  background: var(--bg-hover);
+  border-color: var(--border-accent);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
+}
+
+.btn-primary {
+  background: var(--gradient-primary);
+  color: white;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 6px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: var(--shadow-sm);
+}
+
+.btn-primary:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-glow);
+}
+
+.btn-secondary {
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
+  border: 1px solid var(--border-accent);
+  padding: 0.75rem 1.5rem;
+  border-radius: 6px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.btn-secondary:hover {
+  background: var(--bg-hover);
+  border-color: var(--accent-primary);
+}
+
+.text-gold {
+  color: var(--accent-gold);
+}
+
+.text-muted {
+  color: var(--text-muted);
+}
+
+.glow-effect {
+  box-shadow: 0 0 20px rgba(139, 92, 246, 0.4);
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg-primary);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--accent-primary);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--accent-secondary);
+}
