@@ -160,9 +160,71 @@ export default {
 }
 
 /* Responsive Design */
+@media (max-width: 1024px) {
+  .sidebar {
+    width: 200px;
+  }
+  
+  .nav-link {
+    padding: 0.5rem 1rem;
+    gap: 0.75rem;
+  }
+  
+  .nav-text {
+    font-size: 0.9rem;
+  }
+  
+  .nav-icon {
+    width: 22px;
+    height: 22px;
+  }
+}
+
 @media (max-width: 768px) {
   .sidebar {
-    display: none; /* Esconder em mobile por enquanto */
+    position: fixed;
+    left: -250px;
+    transition: left 0.3s ease;
+    z-index: 1000;
+    width: 250px;
+  }
+  
+  .sidebar.mobile-open {
+    left: 0;
+  }
+  
+  /* Overlay para fechar sidebar em mobile */
+  .sidebar::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    right: -100vw;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: -1;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+  
+  .sidebar.mobile-open::before {
+    right: -250px;
+    opacity: 1;
+  }
+}
+
+@media (max-width: 480px) {
+  .sidebar {
+    width: 100%;
+    left: -100%;
+  }
+  
+  .sidebar.mobile-open {
+    left: 0;
+  }
+  
+  .sidebar.mobile-open::before {
+    right: 0;
   }
 }
 

@@ -60,4 +60,61 @@ export default {
 .footer-link:hover {
   color: var(--accent-gold);
 }
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .footer {
+    padding: 1rem;
+    text-align: center;
+  }
+  
+  .footer-content {
+    flex-direction: column;
+    gap: 1rem;
+    align-items: center;
+  }
+  
+  .footer-links {
+    gap: 1rem;
+  }
+  
+  .footer-link {
+    font-size: 0.85rem;
+    padding: 0.25rem 0;
+  }
+  
+  .footer-text {
+    font-size: 0.8rem;
+    margin-top: 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .footer {
+    padding: 0.75rem 0.5rem;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 100;
+    background: var(--bg-secondary);
+    border-top: 1px solid var(--border-color);
+  }
+  
+  .footer-content {
+    gap: 0.5rem;
+  }
+  
+  .footer-links {
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.75rem;
+  }
+  
+  .footer-text {
+    font-size: 0.75rem;
+    margin-top: 0.5rem;
+  }
+}
 </style>

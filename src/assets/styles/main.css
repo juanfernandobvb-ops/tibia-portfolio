@@ -119,6 +119,66 @@ body {
   color: var(--text-muted);
 }
 
+/* Responsive Typography & Global Mobile Styles */
+@media (max-width: 1200px) {
+  body {
+    font-size: 15px;
+  }
+}
+
+@media (max-width: 768px) {
+  body {
+    font-size: 14px;
+    overflow-x: hidden;
+  }
+  
+  #app {
+    width: 100%;
+    overflow-x: hidden;
+  }
+  
+  .btn-primary {
+    padding: 0.6rem 1.2rem;
+    font-size: 0.9rem;
+  }
+  
+  .btn-secondary {
+    padding: 0.6rem 1.2rem;
+    font-size: 0.9rem;
+  }
+  
+  .card {
+    border-radius: 6px;
+    box-shadow: var(--shadow-sm);
+  }
+  
+  .card-hover:hover {
+    transform: translateY(-1px);
+  }
+}
+
+@media (max-width: 480px) {
+  body {
+    font-size: 13px;
+    line-height: 1.5;
+    padding-bottom: 60px; /* Espaço para footer fixo */
+  }
+  
+  .btn-primary,
+  .btn-secondary {
+    padding: 0.5rem 1rem;
+    font-size: 0.85rem;
+  }
+  
+  .card {
+    border-radius: 4px;
+  }
+  
+  .card-hover:hover {
+    transform: none;
+  }
+}
+
 .glow-effect {
   box-shadow: 0 0 20px rgba(139, 92, 246, 0.4);
 }

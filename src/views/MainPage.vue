@@ -52,7 +52,25 @@ export default {
 @media (max-width: 768px) {
   .main-content {
     margin-left: 0; /* Sem sidebar em mobile */
-    padding: 1rem;
+    padding: 1rem 0.5rem;
+    padding-bottom: 4rem; /* Mais espaço para footer em mobile */
+  }
+  
+  .content-container {
+    max-width: 100%;
+    padding: 0 0.5rem;
+  }
+  
+  .page-title {
+    font-size: 1.5rem;
+    margin-bottom: 1rem;
+    padding-bottom: 0.75rem;
+  }
+  
+  .topics-grid {
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 1rem;
+    padding: 0.5rem 0;
   }
 }
 

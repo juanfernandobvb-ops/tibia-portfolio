@@ -59,6 +59,60 @@ export default {
   padding: 1rem 0;
 }
 
+/* Responsive Design */
+@media (max-width: 768px) {
+  .content-container {
+    padding: 0 1rem;
+  }
+  
+  .page-title {
+    font-size: 1.5rem;
+    margin-bottom: 1.5rem;
+  }
+  
+  .topics-grid {
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 1rem;
+    padding: 0.5rem 0;
+  }
+  
+  .topic-card {
+    padding: 1rem 0.75rem;
+  }
+  
+  .topic-icon {
+    font-size: 2rem;
+  }
+  
+  .topic-name {
+    font-size: 0.9rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .page-title {
+    font-size: 1.3rem;
+    margin-bottom: 1rem;
+  }
+  
+  .topics-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.75rem;
+  }
+  
+  .topic-card {
+    padding: 0.75rem 0.5rem;
+  }
+  
+  .topic-icon {
+    font-size: 1.8rem;
+  }
+  
+  .topic-name {
+    font-size: 0.8rem;
+  }
+}
+
 .topic-card {
   background-color: var(--bg-secondary);
   border: 2px solid var(--border-color);
