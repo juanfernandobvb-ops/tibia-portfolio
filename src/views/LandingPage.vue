@@ -101,7 +101,15 @@ export default {
   left: 0;
   right: 0;
   bottom: 0;
-  background: radial-gradient(circle at 50% 50%, rgba(139, 92, 246, 0.05) 0%, transparent 60%);
+  background-image: 
+    radial-gradient(circle at 50% 50%, rgba(139, 92, 246, 0.05) 0%, transparent 60%),
+    url('../assets/images/general/ferumbras.png');
+  background-size: cover, 120% auto;
+  background-repeat: no-repeat, no-repeat;
+  background-position: center center, center 20%;
+  opacity: 0.15;
+  filter: blur(0.5px);
+  z-index: 1;
   pointer-events: none;
 }
 
