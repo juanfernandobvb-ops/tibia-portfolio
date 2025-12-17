@@ -10,7 +10,7 @@
         <span>Quests</span>
       </router-link>
       <router-link to="/party-finder" class="sidebar-link">
-        <span class="icon">🐉</span>
+        <img src="../assets/images/general/party.gif" alt="Party Finder" class="icon-img" />
         <span>Party Finder</span>
       </router-link>
       <a href="#" class="sidebar-link">
@@ -147,8 +147,8 @@ export default {
 }
 
 .icon-img {
-  width: 22px;
-  height: 22px;
+  width: 26px;
+  height: 26px;
   object-fit: contain;
   filter: drop-shadow(0 0 4px rgba(245, 158, 11, 0.3));
   transition: all 0.3s ease;

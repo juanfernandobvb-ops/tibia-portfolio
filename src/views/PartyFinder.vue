@@ -14,8 +14,7 @@
             ➕ Cadastrar Disponibilidade
           </button>
         </div>
-        <p class="section-description">Cadastre-se para aparecer na lista de jogadores disponíveis e encontrar party
-          mais facilmente!</p>
+        <p class="section-description">Cadastre-se para aparecer na lista de jogadores disponíveis e encontrar party mais facilmente!</p>
       </div>
 
       <!-- Available Players Section -->
@@ -28,7 +27,79 @@
             <span v-else>🔴 Modo offline - {{ filteredPlayers.length }} jogador(es)</span>
           </div>
         </div>
-
+        
+        <div class="party-search-section">
+          <h3 class="search-title">🔍 Buscar Party Compatível</h3>
+          <div class="search-form">
+            <div class="search-row">
+              <div class="search-field">
+                <label for="myLevelInput">Meu Level:</label>
+                <input 
+                  type="number" 
+                  id="myLevelInput"
+                  v-model.number="partySearch.myLevel" 
+                  placeholder="Ex: 130"
+                  class="level-input"
+                  min="1"
+                  max="2000"
+                />
+              </div>
+              
+              <div class="search-field vocations-field">
+                <label>Vocações desejadas:</label>
+                <div class="vocation-checkboxes">
+                  <label class="vocation-checkbox">
+                    <input type="checkbox" value="Elite Knight" v-model="partySearch.desiredVocations" />
+                    <span>EK</span>
+                  </label>
+                  <label class="vocation-checkbox">
+                    <input type="checkbox" value="Royal Paladin" v-model="partySearch.desiredVocations" />
+                    <span>RP</span>
+                  </label>
+                  <label class="vocation-checkbox">
+                    <input type="checkbox" value="Elder Druid" v-model="partySearch.desiredVocations" />
+                    <span>ED</span>
+                  </label>
+                  <label class="vocation-checkbox">
+                    <input type="checkbox" value="Master Sorcerer" v-model="partySearch.desiredVocations" />
+                    <span>MS</span>
+                  </label>
+                </div>
+              </div>
+            </div>
+            
+            <div class="search-actions">
+              <button 
+                @click="applyPartySearch" 
+                class="btn-search" 
+                :disabled="!partySearch.myLevel"
+              >
+                🔍 Buscar Compatíveis
+              </button>
+              <button 
+                @click="clearPartySearch" 
+                class="btn-clear-search"
+                v-if="isPartySearchActive"
+              >
+                ✕ Limpar Busca
+              </button>
+            </div>
+            
+            <div v-if="partySearch.applied && levelRange" class="search-results-info">
+              <div class="compatibility-info">
+                <span class="my-level">Seu Level: {{ partySearch.myLevel }}</span>
+                <span class="level-range">Compatível: {{ levelRange.min }} - {{ levelRange.max }}</span>
+                <span v-if="partySearch.desiredVocations.length > 0" class="desired-vocations">
+                  Vocações: {{ partySearch.desiredVocations.join(', ') }}
+                </span>
+              </div>
+              <div class="results-count">
+                <span class="found-count">{{ compatiblePlayersCount }} jogador(es) encontrado(s)</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        
         <div class="filters">
           <div class="filter-group">
             <select v-model="filters.server" class="filter-select">
@@ -36,7 +107,7 @@
               <option v-for="server in uniqueServers" :key="server" :value="server">{{ server }}</option>
             </select>
           </div>
-
+          
           <div class="filter-group">
             <select v-model="filters.vocation" class="filter-select">
               <option value="">Todas as Vocações</option>
@@ -57,154 +128,254 @@
           </div>
         </div>
 
-        <div class="players-grid">
-          <div v-for="player in filteredPlayers" :key="player.id" class="player-card">
-            <div class="player-header">
-              <div class="player-basic-info">
-                <h3>{{ player.name }}</h3>
-                <div class="player-details">
-                  <span class="level">Level {{ player.level }}</span>
-                  <span class="vocation">{{ player.vocation }}</span>
+        <div class="players-list">
+          <div class="list-header">
+            <div class="col-name">Personagem</div>
+            <div class="col-level">Level</div>
+            <div class="col-vocation">Vocação</div>
+            <div class="col-server">Servidor</div>
+            <div class="col-availability">Disponibilidade</div>
+            <div class="col-actions">Ações</div>
+          </div>
+          
+          <div v-for="player in filteredPlayers" :key="player.id" class="player-row">
+            <div class="col-name">
+              <div class="player-name">
+                <span class="name">{{ player.name }}</span>
+                <span v-if="player.guild" class="guild">[{{ player.guild.name }}]</span>
+              </div>
+            </div>
+            <div class="col-level">
+              <span class="level-badge" :class="{ 'compatible': isLevelCompatible(player.level) }">
+                {{ player.level }}
+                <span v-if="isLevelCompatible(player.level)" class="compatible-icon">✓</span>
+              </span>
+            </div>
+            <div class="col-vocation">
+              <span class="vocation-badge">{{ player.vocation }}</span>
+            </div>
+            <div class="col-server">
+              <span class="server-badge">{{ player.world }}</span>
+            </div>
+            <div class="col-availability">
+              <div class="availability-compact">
+                <span v-for="period in player.availability" :key="period" class="period-tag">
+                  {{ period }}
+                </span>
+              </div>
+            </div>
+            <div class="col-actions">
+              <button class="btn-view" @click="openPlayerModal(player)">
+                👁️ Ver
+              </button>
+              <button 
+                v-if="canRemovePlayer(player)" 
+                class="btn-remove" 
+                @click="removePlayer(player)"
+                title="Remover meu cadastro"
+              >
+                ✕
+              </button>
+            </div>
+          </div>
+
+          <!-- Empty State -->
+          <div v-if="filteredPlayers.length === 0" class="empty-state-list">
+            <span class="empty-icon">👥</span>
+            <div class="empty-text">
+              <h3>Nenhum jogador disponível</h3>
+              <p>Seja o primeiro a se cadastrar ou ajuste os filtros!</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Registration Modal -->
+    <div v-if="showRegistrationModal" class="modal-overlay" @click="closeRegistrationModal">
+      <div class="modal-content" @click.stop>
+        <div class="modal-header">
+          <h2>Cadastrar Disponibilidade</h2>
+          <button class="modal-close" @click="closeRegistrationModal">✕</button>
+        </div>
+        
+        <div class="modal-body">
+          <div class="form-row">
+            <div class="form-group">
+              <label for="characterName">Nome do Personagem</label>
+              <div class="input-group">
+                <input 
+                  type="text" 
+                  id="characterName" 
+                  v-model="newPlayer.characterName" 
+                  placeholder="Ex: Dark Wizard"
+                  class="form-input"
+                  :disabled="loading"
+                />
+                <button 
+                  type="button" 
+                  @click="fetchCharacterData" 
+                  class="btn-secondary"
+                  :disabled="!newPlayer.characterName || loading"
+                >
+                  {{ loading ? '⏳' : '🔍' }} Buscar
+                </button>
+              </div>
+              <small v-if="characterError" class="error-text">{{ characterError }}</small>
+            </div>
+          </div>
+
+          <div v-if="characterData" class="character-preview">
+            <h4>Dados do Personagem:</h4>
+            <div class="character-info">
+              <div class="info-item">
+                <span class="icon">👤</span>
+                <span>{{ characterData.name }}</span>
+              </div>
+              <div class="info-item">
+                <span class="icon">📊</span>
+                <span>Level {{ characterData.level }}</span>
+              </div>
+              <div class="info-item">
+                <span class="icon">🌍</span>
+                <span>{{ characterData.world }}</span>
+              </div>
+              <div class="info-item">
+                <span class="icon">⚔️</span>
+                <span>{{ characterData.vocation }}</span>
+              </div>
+              <div v-if="characterData.guild" class="info-item">
+                <span class="icon">🏰</span>
+                <span>{{ characterData.guild.name }} ({{ characterData.guild.rank }})</span>
+              </div>
+            </div>
+          </div>
+
+          <div v-if="characterData" class="form-group">
+            <label>Disponibilidade de Horário</label>
+            <div class="schedule-grid">
+              <div v-for="period in availablePeriods" :key="period.id" class="schedule-item">
+                <input 
+                  type="checkbox" 
+                  :id="'period-' + period.id" 
+                  :value="period.value" 
+                  v-model="newPlayer.availability"
+                  class="schedule-checkbox"
+                />
+                <label :for="'period-' + period.id" class="schedule-label">{{ period.label }}</label>
+              </div>
+            </div>
+          </div>
+
+          <div v-if="characterData" class="form-group">
+            <label for="contactInfo">Contato (Discord/WhatsApp) - Opcional</label>
+            <input 
+              type="text" 
+              id="contactInfo" 
+              v-model="newPlayer.contactInfo" 
+              placeholder="Ex: Discord#1234, WhatsApp, in-game message..."
+              class="form-input"
+            />
+          </div>
+
+          <div v-if="characterData" class="form-group">
+            <label for="notes">Observações (Opcional)</label>
+            <textarea 
+              id="notes" 
+              v-model="newPlayer.notes" 
+              placeholder="Especifique horários específicos (ex: 14h às 16h), tipo de hunt preferida, level mínimo, etc..."
+              class="form-textarea"
+              rows="3"
+            ></textarea>
+          </div>
+        </div>
+        
+        <div class="modal-footer">
+          <button type="button" @click="closeRegistrationModal" class="btn-secondary">Cancelar</button>
+          <button 
+            type="button" 
+            @click="registerPlayer" 
+            class="btn-primary" 
+            :disabled="!characterData || newPlayer.availability.length === 0"
+          >
+            Cadastrar Disponibilidade
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Player Details Modal -->
+    <div v-if="showPlayerModal && selectedPlayer" class="modal-overlay" @click="closePlayerModal">
+      <div class="modal-content player-modal" @click.stop>
+        <div class="modal-header">
+          <h2>Detalhes do Jogador</h2>
+          <button class="modal-close" @click="closePlayerModal">✕</button>
+        </div>
+        
+        <div class="modal-body">
+          <div class="player-details-complete">
+            <div class="player-main-info">
+              <h3 class="player-name-large">{{ selectedPlayer.name }}</h3>
+              <div class="player-stats">
+                <div class="stat-item">
+                  <span class="icon">📊</span>
+                  <span>Level {{ selectedPlayer.level }}</span>
+                </div>
+                <div class="stat-item">
+                  <span class="icon">⚔️</span>
+                  <span>{{ selectedPlayer.vocation }}</span>
+                </div>
+                <div class="stat-item">
+                  <span class="icon">🌍</span>
+                  <span>{{ selectedPlayer.world }}</span>
+                </div>
+                <div v-if="selectedPlayer.guild" class="stat-item">
+                  <span class="icon">🏰</span>
+                  <span>{{ selectedPlayer.guild.name }} ({{ selectedPlayer.guild.rank }})</span>
                 </div>
               </div>
-              <div class="player-status">
-                <span class="status-badge online">Online</span>
-                <span class="server-badge">{{ player.world }}</span>
-              </div>
             </div>
 
-            <div v-if="player.guild" class="guild-info">
-              <span class="icon">🏰</span>
-              <span>{{ player.guild.name }} - {{ player.guild.rank }}</span>
-            </div>
-
-            <div class="availability-section">
-              <h4>Disponibilidade:</h4>
-              <div class="availability-tags">
-                <span v-for="period in player.availability" :key="period" class="time-tag">
+            <div class="availability-section-modal">
+              <h4>Disponibilidade de Horário:</h4>
+              <div class="availability-tags-modal">
+                <span v-for="period in selectedPlayer.availability" :key="period" class="time-tag-modal">
                   {{ period }}
                 </span>
               </div>
             </div>
 
-            <div v-if="player.notes" class="notes-section">
-              <p>{{ player.notes }}</p>
-            </div>
-
-            <div class="player-footer">
-              <div class="contact-info">
+            <div v-if="selectedPlayer.contactInfo" class="contact-section">
+              <h4>Contato:</h4>
+              <div class="contact-info-modal">
                 <span class="icon">💬</span>
-                <span>{{ player.contactInfo || 'Contato in-game' }}</span>
-              </div>
-
-              <div class="player-actions">
-                <button class="btn-primary btn-small" @click="contactPlayer(player)">
-                  Entrar em Contato
-                </button>
-                <button 
-                  v-if="canRemovePlayer(player)" 
-                  class="btn-danger btn-small" 
-                  @click="removePlayer(player)"
-                >
-                  Remover
-                </button>
-                <span class="registered-time">{{ formatTime(player.registeredAt) }}</span>
+                <span class="contact-text">{{ selectedPlayer.contactInfo }}</span>
               </div>
             </div>
-          </div>
 
-          <!-- Empty State -->
-          <div v-if="filteredPlayers.length === 0" class="empty-state">
-            <span class="empty-icon">👥</span>
-            <h3>Nenhum jogador disponível</h3>
-            <p>Seja o primeiro a se cadastrar ou ajuste os filtros!</p>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
+            <div v-if="selectedPlayer.notes" class="notes-section-modal">
+              <h4>Observações:</h4>
+              <p class="notes-text">{{ selectedPlayer.notes }}</p>
+            </div>
 
-  <!-- Registration Modal -->
-  <div v-if="showRegistrationModal" class="modal-overlay" @click="closeRegistrationModal">
-    <div class="modal-content" @click.stop>
-      <div class="modal-header">
-        <h2>Cadastrar Disponibilidade</h2>
-        <button class="modal-close" @click="closeRegistrationModal">✕</button>
-      </div>
-
-      <div class="modal-body">
-        <div class="form-row">
-          <div class="form-group">
-            <label for="characterName">Nome do Personagem</label>
-            <div class="input-group">
-              <input type="text" id="characterName" v-model="newPlayer.characterName" placeholder="Ex: Dark Wizard"
-                class="form-input" :disabled="loading" />
-              <button type="button" @click="fetchCharacterData" class="btn-secondary"
-                :disabled="!newPlayer.characterName || loading">
-                {{ loading ? '⏳' : '🔍' }} Buscar
-              </button>
-            </div>
-            <small v-if="characterError" class="error-text">{{ characterError }}</small>
-          </div>
-        </div>
-
-        <div v-if="characterData" class="character-preview">
-          <h4>Dados do Personagem:</h4>
-          <div class="character-info">
-            <div class="info-item">
-              <span class="icon">👤</span>
-              <span>{{ characterData.name }}</span>
-            </div>
-            <div class="info-item">
-              <span class="icon">📊</span>
-              <span>Level {{ characterData.level }}</span>
-            </div>
-            <div class="info-item">
-              <span class="icon">🌍</span>
-              <span>{{ characterData.world }}</span>
-            </div>
-            <div class="info-item">
-              <span class="icon">⚔️</span>
-              <span>{{ characterData.vocation }}</span>
-            </div>
-            <div v-if="characterData.guild" class="info-item">
-              <span class="icon">🏰</span>
-              <span>{{ characterData.guild.name }} ({{ characterData.guild.rank }})</span>
+            <div class="registration-info">
+              <span class="registered-time-modal">
+                🕐 Cadastrado {{ formatTime(selectedPlayer.registeredAt) }}
+              </span>
             </div>
           </div>
         </div>
-
-        <div v-if="characterData" class="form-group">
-          <label>Disponibilidade de Horário</label>
-          <div class="schedule-grid">
-            <div v-for="period in availablePeriods" :key="period.id" class="schedule-item">
-              <input type="checkbox" :id="'period-' + period.id" :value="period.value" v-model="newPlayer.availability"
-                class="schedule-checkbox" />
-              <label :for="'period-' + period.id" class="schedule-label">{{ period.label }}</label>
-            </div>
-          </div>
+        
+        <div class="modal-footer">
+          <button 
+            v-if="canRemovePlayer(selectedPlayer)" 
+            class="btn-danger" 
+            @click="removePlayerFromModal"
+          >
+            Remover Meu Cadastro
+          </button>
+          <button class="btn-secondary" @click="closePlayerModal">Fechar</button>
         </div>
-
-        <div v-if="characterData" class="form-group">
-          <label for="contactInfo">Contato (Discord/WhatsApp) - Opcional</label>
-          <input type="text" id="contactInfo" v-model="newPlayer.contactInfo"
-            placeholder="Ex: Discord#1234, WhatsApp, in-game message..." class="form-input" />
-        </div>
-
-        <div v-if="characterData" class="form-group">
-          <label for="notes">Observações (Opcional)</label>
-          <textarea id="notes" v-model="newPlayer.notes"
-            placeholder="Especifique horários específicos (ex: 14h às 16h), tipo de hunt preferida, level mínimo, etc..."
-            class="form-textarea" rows="3"></textarea>
-        </div>
-      </div>
-
-      <div class="modal-footer">
-        <button type="button" @click="closeRegistrationModal" class="btn-secondary">Cancelar</button>
-        <button type="button" @click="registerPlayer" class="btn-primary"
-          :disabled="!characterData || newPlayer.availability.length === 0">
-          Cadastrar Disponibilidade
-        </button>
       </div>
     </div>
   </div>
@@ -218,15 +389,14 @@ export default {
   data() {
     return {
       showRegistrationModal: false,
+      showPlayerModal: false,
+      selectedPlayer: null,
       loadingPlayers: true,
       firebaseConnected: false,
       loading: false,
       characterError: '',
       characterData: null,
       unsubscribeFromFirebase: null,
-      loading: false,
-      characterError: '',
-      characterData: null,
       newPlayer: {
         characterName: '',
         availability: [],
@@ -237,6 +407,11 @@ export default {
         server: '',
         vocation: '',
         timeRange: ''
+      },
+      partySearch: {
+        myLevel: null,
+        desiredVocations: [],
+        applied: false
       },
       availablePeriods: [
         { id: 'morning', label: 'Manhã (06h-12h)', value: 'Manhã' },
@@ -250,6 +425,22 @@ export default {
     filteredPlayers() {
       let filtered = this.players
 
+      // Filter by party search (level compatibility and desired vocations)
+      if (this.partySearch.applied && this.levelRange) {
+        // Level compatibility filter
+        filtered = filtered.filter(player => 
+          player.level >= this.levelRange.min && player.level <= this.levelRange.max
+        )
+        
+        // Desired vocations filter
+        if (this.partySearch.desiredVocations.length > 0) {
+          filtered = filtered.filter(player => 
+            this.partySearch.desiredVocations.includes(player.vocation)
+          )
+        }
+      }
+
+      // Apply other filters
       if (this.filters.server) {
         filtered = filtered.filter(player => player.world === this.filters.server)
       }
@@ -264,9 +455,9 @@ export default {
           afternoon: 'Tarde',
           evening: 'Noite'
         }
-
+        
         const targetPeriod = timeRanges[this.filters.timeRange]
-        filtered = filtered.filter(player =>
+        filtered = filtered.filter(player => 
           player.availability.includes(targetPeriod)
         )
       }
@@ -276,6 +467,27 @@ export default {
 
     uniqueServers() {
       return [...new Set(this.players.map(player => player.world))].sort()
+    },
+
+    levelRange() {
+      if (!this.partySearch.applied || !this.partySearch.myLevel || this.partySearch.myLevel < 1) return null
+      
+      const myLevel = this.partySearch.myLevel
+      const minLevel = Math.max(1, Math.ceil(myLevel * (2/3)))
+      const maxLevel = Math.floor(myLevel / (2/3))
+      
+      return {
+        min: minLevel,
+        max: maxLevel
+      }
+    },
+
+    compatiblePlayersCount() {
+      return this.filteredPlayers.length
+    },
+
+    isPartySearchActive() {
+      return this.partySearch.applied
     }
   },
   async mounted() {
@@ -305,6 +517,7 @@ export default {
         this.loadPlayersFromStorage() // Fallback to localStorage
       }
     },
+
     loadPlayersFromStorage() {
       try {
         const savedPlayers = localStorage.getItem('partyFinderPlayers')
@@ -340,6 +553,7 @@ export default {
         console.error('Error saving players to storage:', error)
       }
     },
+
     openRegistrationModal() {
       this.showRegistrationModal = true
     },
@@ -347,6 +561,23 @@ export default {
     closeRegistrationModal() {
       this.showRegistrationModal = false
       this.resetForm()
+    },
+
+    openPlayerModal(player) {
+      this.selectedPlayer = player
+      this.showPlayerModal = true
+    },
+
+    closePlayerModal() {
+      this.showPlayerModal = false
+      this.selectedPlayer = null
+    },
+
+    async removePlayerFromModal() {
+      if (this.selectedPlayer) {
+        await this.removePlayer(this.selectedPlayer)
+        this.closePlayerModal()
+      }
     },
 
     toggleRegistrationForm() {
@@ -454,10 +685,6 @@ export default {
       this.characterError = ''
     },
 
-    contactPlayer(player) {
-      alert(`Entrando em contato com ${player.name}!\nContato: ${player.contactInfo}`)
-    },
-
     canRemovePlayer(player) {
       if (this.firebaseConnected) {
         return PartyFinderService.canRemovePlayer(player.id)
@@ -499,13 +726,35 @@ export default {
       const now = new Date()
       const diffMs = now - date
       const diffMins = Math.floor(diffMs / 60000)
-
+      
       if (diffMins < 60) {
         return `${diffMins}min atrás`
       } else {
         const diffHours = Math.floor(diffMins / 60)
         return `${diffHours}h atrás`
       }
+    },
+
+    clearLevelFilter() {
+      this.filters.myLevel = null
+    },
+
+    applyPartySearch() {
+      if (!this.partySearch.myLevel) return
+      this.partySearch.applied = true
+    },
+
+    clearPartySearch() {
+      this.partySearch = {
+        myLevel: null,
+        desiredVocations: [],
+        applied: false
+      }
+    },
+
+    isLevelCompatible(playerLevel) {
+      if (!this.partySearch.applied || !this.levelRange) return false
+      return playerLevel >= this.levelRange.min && playerLevel <= this.levelRange.max
     }
   }
 }
@@ -790,7 +1039,8 @@ export default {
 }
 
 .btn-primary,
-.btn-secondary {
+.btn-secondary,
+.btn-danger {
   padding: 0.75rem 1.5rem;
   border-radius: 8px;
   border: none;
@@ -862,182 +1112,458 @@ export default {
   min-width: 150px;
 }
 
-.players-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+/* Compatibility Filter Styles */
+.party-search-section {
+  background: rgba(59, 130, 246, 0.05);
+  border: 2px solid #3b82f6;
+  border-radius: 16px;
+  padding: 2rem;
+  margin-bottom: 2rem;
+}
+
+.search-title {
+  color: #3b82f6;
+  font-size: 1.2rem;
+  font-weight: 600;
+  margin: 0 0 1.5rem 0;
+  text-align: center;
+}
+
+.search-form {
+  display: flex;
+  flex-direction: column;
   gap: 1.5rem;
 }
 
-.player-card {
-  background: var(--bg-tertiary);
-  border: 2px solid var(--border-color);
-  border-radius: 12px;
-  padding: 1.5rem;
-  transition: all 0.3s ease;
-}
-
-.player-card:hover {
-  border-color: var(--accent-gold);
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-lg);
-}
-
-.player-header {
+.search-row {
   display: flex;
-  justify-content: space-between;
+  gap: 2rem;
   align-items: flex-start;
-  margin-bottom: 1rem;
 }
 
-.player-basic-info h3 {
-  color: var(--accent-gold);
-  font-size: 1.1rem;
-  margin: 0 0 0.5rem 0;
-}
-
-.player-details {
-  display: flex;
-  gap: 1rem;
-}
-
-.level {
-  background: rgba(16, 185, 129, 0.2);
-  color: var(--accent-green);
-  padding: 0.25rem 0.5rem;
-  border-radius: 4px;
-  font-size: 0.8rem;
-}
-
-.vocation {
-  background: rgba(245, 158, 11, 0.2);
-  color: var(--accent-gold);
-  padding: 0.25rem 0.5rem;
-  border-radius: 4px;
-  font-size: 0.8rem;
-}
-
-.player-status {
+.search-field {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
-  align-items: flex-end;
 }
 
-.status-badge {
-  padding: 0.25rem 0.75rem;
+.search-field label {
+  color: #3b82f6;
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.vocations-field {
+  flex: 1;
+}
+
+.vocation-checkboxes {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.vocation-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: var(--bg-secondary);
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  border: 2px solid var(--border-color);
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.vocation-checkbox:hover {
+  border-color: #3b82f6;
+  background: rgba(59, 130, 246, 0.1);
+}
+
+.vocation-checkbox input[type="checkbox"] {
+  accent-color: #3b82f6;
+}
+
+.vocation-checkbox span {
+  color: var(--text-primary);
+  font-weight: 500;
+  font-size: 0.85rem;
+}
+
+.search-actions {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+}
+
+.btn-search {
+  background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+  color: white;
+  border: none;
+  padding: 0.75rem 2rem;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 0.9rem;
+}
+
+.btn-search:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(59, 130, 246, 0.3);
+}
+
+.btn-search:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.btn-clear-search {
+  background: rgba(239, 68, 68, 0.2);
+  color: #ef4444;
+  border: 2px solid #ef4444;
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 0.9rem;
+}
+
+.btn-clear-search:hover {
+  background: #ef4444;
+  color: white;
+  transform: translateY(-2px);
+}
+
+.search-results-info {
+  background: rgba(16, 185, 129, 0.1);
+  border: 2px solid var(--accent-green);
   border-radius: 12px;
+  padding: 1.5rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.compatibility-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.my-level,
+.level-range,
+.desired-vocations {
+  color: var(--accent-green);
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.results-count {
+  text-align: right;
+}
+
+.found-count {
+  color: var(--accent-green);
+  font-weight: 700;
+  font-size: 1.1rem;
+}
+
+.level-badge.compatible {
+  background: rgba(16, 185, 129, 0.3);
+  border: 2px solid var(--accent-green);
+  position: relative;
+}
+
+.compatible-icon {
+  margin-left: 0.25rem;
+  font-weight: bold;
+  color: var(--accent-green);
+}
+
+/* Players List Styles */
+.players-list {
+  background: var(--bg-tertiary);
+  border-radius: 12px;
+  border: 2px solid var(--border-color);
+  overflow: hidden;
+}
+
+.list-header {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1.5fr 1.2fr 1.5fr 1fr;
+  gap: 1rem;
+  padding: 1rem 1.5rem;
+  background: var(--bg-secondary);
+  border-bottom: 2px solid var(--border-color);
+  font-weight: 600;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.player-row {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1.5fr 1.2fr 1.5fr 1fr;
+  gap: 1rem;
+  padding: 1rem 1.5rem;
+  border-bottom: 1px solid var(--border-color);
+  transition: all 0.3s ease;
+  align-items: center;
+}
+
+.player-row:hover {
+  background: rgba(245, 158, 11, 0.05);
+}
+
+.player-row:last-child {
+  border-bottom: none;
+}
+
+.col-name {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.player-name {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.name {
+  color: var(--accent-gold);
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+
+.guild {
+  color: var(--text-secondary);
   font-size: 0.8rem;
+  font-style: italic;
+}
+
+.level-badge {
+  background: rgba(16, 185, 129, 0.2);
+  color: var(--accent-green);
+  padding: 0.25rem 0.5rem;
+  border-radius: 6px;
+  font-size: 0.85rem;
   font-weight: 500;
 }
 
-.status-badge.online {
-  background: rgba(16, 185, 129, 0.2);
-  color: var(--accent-green);
-  border: 1px solid var(--accent-green);
+.vocation-badge {
+  background: rgba(245, 158, 11, 0.2);
+  color: var(--accent-gold);
+  padding: 0.25rem 0.5rem;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  font-weight: 500;
 }
 
 .server-badge {
   background: var(--bg-secondary);
   color: var(--text-secondary);
-  padding: 0.25rem 0.75rem;
-  border-radius: 8px;
-  font-size: 0.8rem;
+  padding: 0.25rem 0.5rem;
+  border-radius: 6px;
+  font-size: 0.85rem;
   border: 1px solid var(--border-color);
 }
 
-.guild-info {
+.availability-compact {
   display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  color: var(--text-secondary);
-  font-size: 0.9rem;
-  margin-bottom: 1rem;
-}
-
-.availability-section {
-  margin-bottom: 1rem;
-}
-
-.availability-section h4 {
-  color: var(--text-primary);
-  font-size: 0.9rem;
-  margin-bottom: 0.5rem;
-}
-
-.availability-tags {
-  display: flex;
+  gap: 0.25rem;
   flex-wrap: wrap;
-  gap: 0.5rem;
 }
 
-.time-tag {
+.period-tag {
   background: var(--gradient-primary);
   color: white;
-  padding: 0.25rem 0.5rem;
-  border-radius: 6px;
-  font-size: 0.8rem;
+  padding: 0.2rem 0.4rem;
+  border-radius: 4px;
+  font-size: 0.75rem;
   font-weight: 500;
 }
 
-.notes-section {
-  background: var(--bg-secondary);
-  border-radius: 8px;
-  padding: 1rem;
-  margin-bottom: 1rem;
-  border-left: 3px solid var(--accent-primary);
+.col-actions {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
 }
 
-.notes-section p {
+.btn-view {
+  background: rgba(59, 130, 246, 0.2);
+  color: #3b82f6;
+  border: 1px solid #3b82f6;
+  padding: 0.4rem 0.8rem;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.btn-view:hover {
+  background: #3b82f6;
+  color: white;
+  transform: translateY(-1px);
+}
+
+.btn-remove {
+  background: rgba(239, 68, 68, 0.2);
+  color: #ef4444;
+  border: 1px solid #ef4444;
+  padding: 0.4rem 0.6rem;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.btn-remove:hover {
+  background: #ef4444;
+  color: white;
+  transform: translateY(-1px);
+}
+
+.empty-state-list {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem;
+  gap: 1rem;
+}
+
+.empty-state-list .empty-icon {
+  font-size: 3rem;
+}
+
+.empty-text h3 {
+  color: var(--text-primary);
+  margin-bottom: 0.5rem;
+  margin-top: 0;
+}
+
+.empty-text p {
   color: var(--text-secondary);
   margin: 0;
-  font-size: 0.9rem;
-  line-height: 1.4;
 }
 
-.player-footer {
+/* Player Details Modal */
+.player-modal {
+  max-width: 600px;
+}
+
+.player-details-complete {
   display: flex;
-  justify-content: space-between;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.player-main-info {
+  text-align: center;
+}
+
+.player-name-large {
+  color: var(--accent-gold);
+  font-size: 1.8rem;
+  margin: 0 0 1rem 0;
+  text-shadow: 0 0 10px rgba(245, 158, 11, 0.3);
+}
+
+.player-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+}
+
+.stat-item {
+  display: flex;
   align-items: center;
+  gap: 0.5rem;
+  background: var(--bg-secondary);
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
+}
+
+.stat-item .icon {
+  font-size: 1.2rem;
+}
+
+.availability-section-modal h4,
+.contact-section h4,
+.notes-section-modal h4 {
+  color: var(--text-primary);
+  margin-bottom: 1rem;
+  font-size: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.availability-tags-modal {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.time-tag-modal {
+  background: var(--gradient-primary);
+  color: white;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  font-weight: 500;
+  font-size: 0.9rem;
+}
+
+.contact-info-modal {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  background: var(--bg-secondary);
+  padding: 1rem;
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
+}
+
+.contact-text {
+  font-family: 'Courier New', monospace;
+  background: rgba(245, 158, 11, 0.1);
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  color: var(--accent-gold);
+  font-weight: 500;
+}
+
+.notes-text {
+  background: var(--bg-secondary);
+  padding: 1rem;
+  border-radius: 8px;
+  border-left: 4px solid var(--accent-gold);
+  color: var(--text-secondary);
+  line-height: 1.6;
+  margin: 0;
+}
+
+.registration-info {
+  text-align: center;
   padding-top: 1rem;
   border-top: 1px solid var(--border-color);
 }
 
-.contact-info {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
+.registered-time-modal {
   color: var(--text-secondary);
   font-size: 0.9rem;
-}
-
-.player-actions {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 0.5rem;
-}
-
-.registered-time {
-  color: var(--text-secondary);
-  font-size: 0.8rem;
-}
-
-.empty-state {
-  grid-column: 1 / -1;
-  text-align: center;
-  padding: 3rem;
-  color: var(--text-secondary);
-}
-
-.empty-icon {
-  font-size: 4rem;
-  display: block;
-  margin-bottom: 1rem;
-}
-
-.empty-state h3 {
-  color: var(--text-primary);
-  margin-bottom: 0.5rem;
+  font-style: italic;
 }
 
 /* Responsive Design */
@@ -1045,39 +1571,92 @@ export default {
   .party-finder {
     padding: 1rem;
   }
-
-  .players-grid {
-    grid-template-columns: 1fr;
+  
+  .players-list {
+    overflow-x: auto;
   }
-
+  
+  .list-header,
+  .player-row {
+    grid-template-columns: 1.5fr 0.8fr 1fr 1fr 1.2fr 0.8fr;
+    gap: 0.5rem;
+    padding: 0.75rem 1rem;
+  }
+  
+  .list-header {
+    font-size: 0.75rem;
+  }
+  
+  .name {
+    font-size: 0.85rem;
+  }
+  
+  .guild {
+    display: none;
+  }
+  
+  .period-tag {
+    font-size: 0.7rem;
+    padding: 0.15rem 0.3rem;
+  }
+  
+  .btn-view {
+    padding: 0.3rem 0.6rem;
+    font-size: 0.75rem;
+  }
+  
+  .btn-remove {
+    width: 24px;
+    height: 24px;
+    font-size: 0.75rem;
+  }
+  
   .section-header {
     flex-direction: column;
     align-items: flex-start;
     gap: 1rem;
   }
-
-  .form-actions {
-    flex-direction: column;
-  }
-
-  .player-footer {
-    flex-direction: column;
-    gap: 1rem;
-    align-items: stretch;
-  }
-
+  
   .filters {
     flex-direction: column;
   }
-
+  
   .filter-select {
     width: 100%;
   }
-
+  
+  .party-search-section {
+    padding: 1.5rem;
+  }
+  
+  .search-row {
+    flex-direction: column;
+    gap: 1rem;
+  }
+  
+  .vocation-checkboxes {
+    justify-content: center;
+  }
+  
+  .search-actions {
+    flex-direction: column;
+    align-items: center;
+  }
+  
+  .search-results-info {
+    flex-direction: column;
+    gap: 1rem;
+    text-align: center;
+  }
+  
+  .compatibility-info {
+    align-items: center;
+  }
+  
   .input-group {
     flex-direction: column;
   }
-
+  
   .schedule-grid {
     grid-template-columns: 1fr;
   }
