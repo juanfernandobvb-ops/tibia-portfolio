@@ -9,7 +9,7 @@
       <nav class="nav">
         <a href="#" class="nav-link" @click="goHome">Home</a>
         <a href="#" class="nav-link" @click="goToMenu">Menu</a>
-        <a href="#" class="nav-link" @click="openDeveloperModal">Sobre o Desenvolvedor</a>
+        <span class="nav-link disabled">Sobre o Desenvolvedor</span>
       </nav>
     </div>
     
@@ -116,6 +116,18 @@ export default {
   color: var(--accent-secondary);
   background-color: var(--bg-hover);
   box-shadow: var(--shadow-sm);
+}
+
+.nav-link.disabled {
+  color: var(--text-muted);
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.nav-link.disabled:hover {
+  color: var(--text-muted);
+  background-color: transparent;
+  box-shadow: none;
 }
 
 .mobile-menu-btn {

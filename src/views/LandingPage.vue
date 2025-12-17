@@ -14,15 +14,15 @@
         <div class="about-grid">
           <div class="about-card">
             <h3>Nossa Missão</h3>
-            <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.</p>
+            <p>Nosso objetivo é criar uma plataforma unificada que ofereça soluções práticas para todas as adversidades e situações do Tibia. Desde cálculos complexos de imbuements até encontrar companheiros de jornada, queremos simplificar sua experiência no jogo e potencializar seus resultados.</p>
           </div>
           <div class="about-card">
             <h3>O que Oferecemos</h3>
-            <p>Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
+            <p>Ferramentas precisas e confiáveis desenvolvidas por jogadores, para jogadores. Nossa calculadora de imbuements otimiza seus gastos, enquanto o Party Finder conecta você a jogadores compatíveis. Tudo isso com interface intuitiva e dados sempre atualizados.</p>
           </div>
           <div class="about-card">
             <h3>Comunidade</h3>
-            <p>Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt.</p>
+            <p>Acreditamos que Tibia é melhor quando jogado em conjunto. Por isso, criamos espaços para que jogadores se encontrem, compartilhem estratégias e formem grupos. Nossa comunidade é feita de aventureiros que buscam evoluir e se divertir juntos no mundo de Tibia.</p>
           </div>
         </div>
       </div>

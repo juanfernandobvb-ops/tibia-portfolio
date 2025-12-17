@@ -14,14 +14,6 @@
         <img src="../assets/images/general/party.gif" alt="Party Finder" class="topic-icon-img" />
         <div class="topic-name">Party Finder</div>
       </div>
-      <div class="topic-card" @click="navigateTo('teste4')">
-        <div class="topic-icon">🏆</div>
-        <div class="topic-name">Teste 4</div>
-      </div>
-      <div class="topic-card" @click="navigateTo('teste5')">
-        <div class="topic-icon">🗺️</div>
-        <div class="topic-name">Teste 5</div>
-      </div>
     </div>
   </div>
 </template>

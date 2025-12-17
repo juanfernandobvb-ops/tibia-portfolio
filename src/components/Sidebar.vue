@@ -13,14 +13,6 @@
         <img src="../assets/images/general/party.gif" alt="Party Finder" class="icon-img" />
         <span>Party Finder</span>
       </router-link>
-      <a href="#" class="sidebar-link">
-        <span class="icon">🏆</span>
-        <span>Teste 4</span>
-      </a>
-      <a href="#" class="sidebar-link">
-        <span class="icon">🗺️</span>
-        <span>Teste 5</span>
-      </a>
     </nav>
   </aside>
 </template>
@@ -147,8 +139,8 @@ export default {
 }
 
 .icon-img {
-  width: 26px;
-  height: 26px;
+  width: 46px;
+  height: 46px;
   object-fit: contain;
   filter: drop-shadow(0 0 4px rgba(245, 158, 11, 0.3));
   transition: all 0.3s ease;
