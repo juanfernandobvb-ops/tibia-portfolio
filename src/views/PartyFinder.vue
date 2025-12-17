@@ -137,7 +137,6 @@
             <div class="col-name">
               <div class="player-name">
                 <span class="name">{{ player.name }}</span>
-                <span v-if="player.guild" class="guild">[{{ player.guild.name }}]</span>
               </div>
             </div>
             <div class="col-level">
