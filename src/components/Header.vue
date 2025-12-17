@@ -2,11 +2,6 @@
   <header class="header">
     <div class="header-content">
       <div class="header-left">
-        <button class="sidebar-toggle" @click="toggleSidebar">
-          <span class="hamburger-line"></span>
-          <span class="hamburger-line"></span>
-          <span class="hamburger-line"></span>
-        </button>
         <div class="logo" @click="goHome">
           <h1>Projeto Tibia</h1>
         </div>
@@ -43,9 +38,6 @@ export default {
     goToMenu() {
       this.$router.push('/menu')
     },
-    toggleSidebar() {
-      this.$emit('toggle-sidebar')
-    },
     openDeveloperModal() {
       this.showDeveloperModal = true
     },
@@ -79,46 +71,6 @@ export default {
 .header-left {
   display: flex;
   align-items: center;
-  gap: 1rem;
-}
-
-.sidebar-toggle {
-  background: linear-gradient(135deg, var(--bg-tertiary), var(--bg-secondary));
-  border: 2px solid var(--border-color);
-  border-radius: 8px;
-  cursor: pointer;
-  padding: 0.75rem;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-around;
-  width: 44px;
-  height: 52px;
-  transition: all 0.3s ease;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-}
-
-.sidebar-toggle:hover {
-  transform: translateY(-2px);
-  border-color: var(--accent-gold);
-  box-shadow: var(--shadow-glow);
-  background-color: var(--bg-hover);
-}
-
-.sidebar-toggle:active {
-  transform: translateY(0);
-  box-shadow: var(--shadow-sm);
-}
-
-.hamburger-line {
-  width: 100%;
-  height: 3px;
-  background-color: var(--accent-gold);
-  border-radius: 3px;
-  transition: all 0.3s ease;
-}
-
-.sidebar-toggle:hover .hamburger-line {
-  background-color: var(--accent-secondary);
 }
 
 .logo {

@@ -1,11 +1,5 @@
 <template>
-  <aside class="sidebar" :class="{ visible: visible }">
-    <div class="sidebar-header">
-      <h3>Menu</h3>
-      <button class="close-button" @click="closeSidebar">
-        ✕
-      </button>
-    </div>
+  <aside class="sidebar">
     <nav class="sidebar-nav">
       <router-link to="/imbuiments" class="sidebar-link">
         <img src="../assets/images/general/imbuiment.gif" alt="Imbuiments" class="icon-img" />
@@ -15,10 +9,10 @@
         <img src="../assets/images/general/quest.gif" alt="Quests" class="icon-img" />
         <span>Quests</span>
       </router-link>
-      <a href="#" class="sidebar-link">
+      <router-link to="/party-finder" class="sidebar-link">
         <span class="icon">🐉</span>
-        <span>Teste 3</span>
-      </a>
+        <span>Party Finder</span>
+      </router-link>
       <a href="#" class="sidebar-link">
         <span class="icon">🏆</span>
         <span>Teste 4</span>
@@ -33,108 +27,158 @@
 
 <script>
 export default {
-  name: 'Sidebar',
-  props: {
-    visible: {
-      type: Boolean,
-      default: false
-    }
-  },
-  methods: {
-    closeSidebar() {
-      this.$emit('close')
-    }
-  }
+  name: 'Sidebar'
 }
 </script>
 
 <style scoped>
 .sidebar {
   position: fixed;
-  top: 0;
-  left: -250px;
-  background-color: var(--bg-secondary);
-  border-right: 2px solid var(--border-color);
-  width: 250px;
-  height: 100vh;
-  padding: 1.5rem 0;
-  box-shadow: 2px 0 8px rgba(0, 0, 0, 0.3);
-  z-index: 99;
-  transition: left 0.3s ease;
-}
+  top: 130px;
+  left: 15px;
+  bottom: 110px;
+  border-radius: 16px;
+  width: 220px;
+  padding: 0;
+  z-index: 90;
+  overflow: hidden;
 
-.sidebar.visible {
-  left: 0;
-}
-
-.sidebar-header {
-  padding: 0 1.5rem 1rem;
-  border-bottom: 2px solid var(--accent-primary);
-  margin-bottom: 1rem;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.close-button {
-  background: none;
-  border: none;
-  color: var(--text-secondary);
-  font-size: 1.5rem;
-  cursor: pointer;
-  padding: 0.25rem;
-  border-radius: 4px;
-  transition: all 0.3s ease;
-}
-
-.close-button:hover {
-  color: var(--accent-gold);
-  background-color: var(--bg-tertiary);
-}
-
-.sidebar-header h3 {
-  color: var(--accent-gold);
-  font-size: 1.1rem;
-  font-weight: 600;
 }
 
 .sidebar-nav {
   display: flex;
   flex-direction: column;
+  gap: 0.25rem;
+  padding: 1.5rem 1rem; /* Centralizando padding aqui */
+  height: 100%;
+  overflow-y: auto;
+  justify-content: flex-start; /* Alinhamento dos itens */
+}
+
+/* Custom Scrollbar */
+.sidebar-nav::-webkit-scrollbar {
+  width: 4px;
+}
+
+.sidebar-nav::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.sidebar-nav::-webkit-scrollbar-thumb {
+  background: var(--accent-gold);
+  border-radius: 2px;
+}
+
+.sidebar-nav::-webkit-scrollbar-thumb:hover {
+  background: var(--accent-secondary);
 }
 
 .sidebar-link {
   display: flex;
   align-items: center;
-  gap: 1rem;
-  padding: 1rem 1.5rem;
+  gap: 0.75rem;
+  padding: 0.875rem 1rem;
+  margin: 0.125rem 0;
   color: var(--text-secondary);
   text-decoration: none;
-  transition: all 0.3s ease;
-  border-left: 3px solid transparent;
+  border-radius: 12px;
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.sidebar-link::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 3px;
+  height: 100%;
+  background: var(--accent-gold);
+  transform: scaleY(0);
+  transition: transform 0.3s ease;
+  border-radius: 0 3px 3px 0;
 }
 
 .sidebar-link:hover {
-  background-color: var(--bg-tertiary);
-  color: var(--accent-secondary);
-  border-left-color: var(--accent-gold);
+  background: linear-gradient(135deg, 
+    rgba(245, 158, 11, 0.1), 
+    rgba(245, 158, 11, 0.05)
+  );
+  color: var(--accent-gold);
+  transform: translateX(4px);
+  box-shadow: 
+    0 4px 12px rgba(245, 158, 11, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+.sidebar-link:hover::before {
+  transform: scaleY(1);
 }
 
 .sidebar-link.active,
 .sidebar-link.router-link-active {
-  background-color: var(--bg-tertiary);
+  background: linear-gradient(135deg, 
+    rgba(245, 158, 11, 0.15), 
+    rgba(245, 158, 11, 0.08)
+  );
   color: var(--accent-gold);
-  border-left-color: var(--accent-gold);
   font-weight: 600;
+  transform: translateX(4px);
+  box-shadow: 
+    0 4px 12px rgba(245, 158, 11, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+.sidebar-link.router-link-active::before {
+  transform: scaleY(1);
 }
 
 .icon {
-  font-size: 1.2rem;
+  font-size: 1.1rem;
+  filter: drop-shadow(0 0 4px rgba(245, 158, 11, 0.3));
+  transition: filter 0.3s ease;
+}
+
+.sidebar-link:hover .icon {
+  filter: drop-shadow(0 0 8px rgba(245, 158, 11, 0.6));
 }
 
 .icon-img {
-  width: 24px;
-  height: 24px;
+  width: 22px;
+  height: 22px;
   object-fit: contain;
+  filter: drop-shadow(0 0 4px rgba(245, 158, 11, 0.3));
+  transition: all 0.3s ease;
+}
+
+.sidebar-link:hover .icon-img {
+  filter: drop-shadow(0 0 8px rgba(245, 158, 11, 0.6));
+  transform: scale(1.1);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .sidebar {
+    display: none; /* Esconder em mobile por enquanto */
+  }
+}
+
+/* Adicionar animação de entrada */
+@keyframes slideInFloat {
+  from {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.sidebar {
+  animation: slideInFloat 0.5s ease-out;
 }
 </style>

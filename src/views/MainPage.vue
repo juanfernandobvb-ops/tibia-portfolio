@@ -1,9 +1,8 @@
 <template>
   <div class="main-page">
-    <Header @toggle-sidebar="toggleSidebar" />
+    <Header />
     <div class="content-wrapper">
-      <div v-if="sidebarVisible" class="sidebar-overlay" @click="closeSidebar"></div>
-      <Sidebar :visible="sidebarVisible" @close="closeSidebar" />
+      <Sidebar />
       <main class="main-content">
         <router-view />
       </main>
@@ -23,19 +22,6 @@ export default {
     Header,
     Sidebar,
     Footer
-  },
-  data() {
-    return {
-      sidebarVisible: false
-    }
-  },
-  methods: {
-    toggleSidebar() {
-      this.sidebarVisible = !this.sidebarVisible
-    },
-    closeSidebar() {
-      this.sidebarVisible = false
-    }
   }
 }
 </script>
@@ -53,22 +39,21 @@ export default {
   position: relative;
 }
 
-.sidebar-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
-  background-color: rgba(0, 0, 0, 0.5);
-  z-index: 98;
-}
-
 .main-content {
   flex: 1;
-  width: 100%;
-  background-color: var(--bg-primary);
+  margin-left: 250px; /* Espaço para sidebar flutuante */
+  background: var(--bg-primary);
   padding: 2rem 2rem 6rem 2rem;
   overflow-y: auto;
+  min-height: calc(100vh - 150px); /* Descontando header + footer */
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .main-content {
+    margin-left: 0; /* Sem sidebar em mobile */
+    padding: 1rem;
+  }
 }
 
 .content-container {

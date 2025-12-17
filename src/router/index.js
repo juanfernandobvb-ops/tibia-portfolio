@@ -25,6 +25,11 @@ const routes = [
     component: () => import('../views/Quests.vue')
   }
   ,{
+    path: '/party-finder',
+    name: 'PartyFinder',
+    component: () => import('../views/PartyFinder.vue')
+  }
+  ,{
     path: '/quests/the-order-of-the-stag',
     name: 'TheOrderOfTheStagQuest',
     component: () => import('../views/quests/TheOrderOfTheStagQuest.vue')
