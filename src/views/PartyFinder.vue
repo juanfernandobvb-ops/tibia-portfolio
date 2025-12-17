@@ -122,7 +122,8 @@
         </div>
 
         <div class="players-list" :class="{ 'search-active': isPartySearchActive }">
-          <div class="list-header">
+          <!-- Desktop Header -->
+          <div class="list-header desktop-only">
             <div class="col-name">Personagem</div>
             <div class="col-level">Level</div>
             <div class="col-vocation">Vocação</div>
@@ -131,7 +132,8 @@
             <div class="col-actions">Ações</div>
           </div>
           
-          <div v-for="player in filteredPlayers" :key="player.id" class="player-row">
+          <!-- Desktop Rows -->
+          <div v-for="player in filteredPlayers" :key="player.id" class="player-row desktop-only">
             <div class="col-name">
               <div class="player-name">
                 <span class="name">{{ player.name }}</span>
@@ -169,6 +171,24 @@
               >
                 ✕
               </button>
+            </div>
+          </div>
+
+          <!-- Mobile Cards -->
+          <div v-for="player in filteredPlayers" :key="'mobile-' + player.id" class="player-card-mobile mobile-only">
+            <div class="mobile-simple-layout">
+              <div class="mobile-player-main">
+                <h4 class="mobile-name">{{ player.name }}</h4>
+                <span class="mobile-level" :class="{ 'compatible': isLevelCompatible(player.level) }">
+                  Level {{ player.level }}
+                  <span v-if="isLevelCompatible(player.level)" class="compatible-icon">✓</span>
+                </span>
+              </div>
+              <div class="mobile-action">
+                <button class="btn-view-simple" @click="openPlayerModal(player)">
+                  Ver Detalhes
+                </button>
+              </div>
             </div>
           </div>
 
@@ -748,6 +768,44 @@ export default {
     isLevelCompatible(playerLevel) {
       if (!this.partySearch.applied || !this.levelRange) return false
       return playerLevel >= this.levelRange.min && playerLevel <= this.levelRange.max
+    },
+
+    getVocationShort(vocation) {
+      const shorts = {
+        'Elite Knight': 'EK',
+        'Royal Paladin': 'RP',
+        'Elder Druid': 'ED',
+        'Master Sorcerer': 'MS'
+      }
+      return shorts[vocation] || vocation
+    },
+
+    getPeriodShort(period) {
+      const shorts = {
+        'Manhã': 'M',
+        'Tarde': 'T', 
+        'Noite': 'N'
+      }
+      return shorts[period] || period
+    },
+
+    getVocationShort(vocation) {
+      const shorts = {
+        'Elite Knight': 'EK',
+        'Royal Paladin': 'RP',
+        'Elder Druid': 'ED',
+        'Master Sorcerer': 'MS'
+      }
+      return shorts[vocation] || vocation
+    },
+
+    getPeriodShort(period) {
+      const shorts = {
+        'Manhã': 'M',
+        'Tarde': 'T', 
+        'Noite': 'N'
+      }
+      return shorts[period] || period
     }
   }
 }
@@ -1588,6 +1646,15 @@ export default {
   box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
 }
 
+/* Desktop Table Styles */
+.desktop-only {
+  display: block;
+}
+
+.mobile-only {
+  display: none;
+}
+
 .list-header {
   display: grid;
   grid-template-columns: 2fr 1fr 1.5fr 1.2fr 1.5fr 1fr;
@@ -1618,6 +1685,83 @@ export default {
 
 .player-row:last-child {
   border-bottom: none;
+}
+
+/* Mobile Card Styles - Simplified */
+.player-card-mobile {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  margin: 0.5rem;
+  padding: 1rem;
+  transition: all 0.3s ease;
+}
+
+.player-card-mobile:hover {
+  border-color: var(--accent-gold);
+  box-shadow: var(--shadow-md);
+  transform: translateY(-1px);
+}
+
+.mobile-simple-layout {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+}
+
+.mobile-player-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.mobile-name {
+  color: var(--accent-gold);
+  font-size: 1rem;
+  font-weight: 600;
+  margin: 0;
+  line-height: 1.2;
+}
+
+.mobile-level {
+  background: rgba(16, 185, 129, 0.2);
+  color: var(--accent-green);
+  padding: 0.3rem 0.6rem;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  display: inline-block;
+  border: 1px solid transparent;
+}
+
+.mobile-level.compatible {
+  background: rgba(16, 185, 129, 0.3);
+  border-color: var(--accent-green);
+  box-shadow: 0 0 8px rgba(16, 185, 129, 0.3);
+}
+
+.mobile-action {
+  flex-shrink: 0;
+}
+
+.btn-view-simple {
+  background: var(--gradient-primary);
+  color: white;
+  border: none;
+  padding: 0.6rem 1.2rem;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  white-space: nowrap;
+}
+
+.btn-view-simple:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-glow);
 }
 
 .col-name {
@@ -1864,98 +2008,146 @@ export default {
 }
 
 /* Responsive Design */
-@media (max-width: 768px) {
+@media (max-width: 1024px) {
   .party-finder {
-    padding: 1rem;
+    padding: 1.5rem 1rem;
   }
   
-  .players-list {
-    overflow-x: auto;
+  .page-title {
+    font-size: 2rem;
   }
   
   .list-header,
   .player-row {
-    grid-template-columns: 1.5fr 0.8fr 1fr 1fr 1.2fr 0.8fr;
-    gap: 0.5rem;
+    grid-template-columns: 1.8fr 0.8fr 1.2fr 1fr 1.3fr 0.9fr;
+    gap: 0.75rem;
     padding: 0.75rem 1rem;
   }
-  
-  .list-header {
-    font-size: 0.75rem;
+}
+
+@media (max-width: 768px) {
+  .party-finder {
+    padding: 1rem 0.5rem;
   }
   
-  .name {
-    font-size: 0.85rem;
+  .page-title {
+    font-size: 1.8rem;
+    margin-bottom: 2rem;
   }
   
-  .guild {
+  .page-subtitle {
+    font-size: 1rem;
+    padding: 0 1rem;
+  }
+  
+  .party-finder-content {
+    gap: 2rem;
+  }
+  
+  .players-section-compact {
+    padding: 1rem;
+  }
+  
+  .players-list {
+    border-radius: 8px;
+  }
+  
+  /* Switch to mobile cards */
+  .desktop-only {
     display: none;
   }
   
-  .period-tag {
-    font-size: 0.7rem;
-    padding: 0.15rem 0.3rem;
+  .mobile-only {
+    display: block;
   }
   
-  .btn-view {
-    padding: 0.3rem 0.6rem;
-    font-size: 0.75rem;
+  /* Modal responsividade */
+  .modal-content {
+    max-width: 95%;
+    margin: 1rem;
   }
   
-  .btn-remove {
-    width: 24px;
-    height: 24px;
-    font-size: 0.75rem;
+  .modal-header,
+  .modal-body,
+  .modal-footer {
+    padding: 1.5rem 1rem;
   }
   
-  .section-header {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 1rem;
+  .player-stats {
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
   }
   
-  .filters {
-    flex-direction: column;
-  }
-  
-  .filter-select {
-    width: 100%;
-  }
-  
-  .party-search-section {
-    padding: 1.5rem;
-  }
-  
-  .search-row {
-    flex-direction: column;
-    gap: 1rem;
-  }
-  
-  .vocation-checkboxes {
-    justify-content: center;
-  }
-  
-  .search-actions {
-    flex-direction: column;
-    align-items: center;
-  }
-  
-  .search-results-info {
-    flex-direction: column;
-    gap: 1rem;
-    text-align: center;
-  }
-  
-  .compatibility-info {
-    align-items: center;
-  }
-  
-  .input-group {
-    flex-direction: column;
+  .character-info {
+    grid-template-columns: 1fr;
   }
   
   .schedule-grid {
     grid-template-columns: 1fr;
+    gap: 0.75rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .party-finder {
+    padding: 0.75rem 0.25rem;
+  }
+  
+  .page-title {
+    font-size: 1.5rem;
+    margin-bottom: 1.5rem;
+  }
+  
+  .page-subtitle {
+    font-size: 0.9rem;
+    padding: 0 0.5rem;
+  }
+  
+  .registration-section-compact,
+  .players-section-compact {
+    margin: 0 0.25rem;
+    padding: 0.75rem;
+  }
+  
+  .players-list {
+    border-radius: 6px;
+  }
+  
+  .player-card-mobile {
+    margin: 0.25rem;
+    padding: 0.75rem;
+  }
+  
+  .mobile-simple-layout {
+    gap: 0.75rem;
+  }
+  
+  .mobile-name {
+    font-size: 0.9rem;
+  }
+  
+  .mobile-level {
+    font-size: 0.8rem;
+    padding: 0.25rem 0.5rem;
+  }
+  
+  .btn-view-simple {
+    padding: 0.5rem 0.9rem;
+    font-size: 0.8rem;
+  }
+  
+  .modal-content {
+    max-width: 98%;
+    max-height: 95vh;
+    margin: 0.5rem;
+  }
+  
+  .modal-header h2 {
+    font-size: 1.1rem;
+  }
+  
+  .player-name-large {
+    font-size: 1.4rem;
   }
 }
 </style>
