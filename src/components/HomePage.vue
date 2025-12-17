@@ -10,9 +10,9 @@
         <img src="../assets/images/general/quest.gif" alt="Quests" class="topic-icon-img" />
         <div class="topic-name">Quests</div>
       </div>
-      <div class="topic-card" @click="navigateTo('teste3')">
-        <div class="topic-icon">🐉</div>
-        <div class="topic-name">Teste 3</div>
+      <div class="topic-card" @click="navigateTo('party-finder')">
+        <img src="../assets/images/general/party.gif" alt="Party Finder" class="topic-icon-img" />
+        <div class="topic-name">Party Finder</div>
       </div>
       <div class="topic-card" @click="navigateTo('teste4')">
         <div class="topic-icon">🏆</div>
