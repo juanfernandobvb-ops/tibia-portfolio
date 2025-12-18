@@ -66,6 +66,10 @@
                   <input type="checkbox" value="Master Sorcerer" v-model="partySearch.desiredVocations" />
                   <span>MS</span>
                 </label>
+                <label class="voc-check">
+                  <input type="checkbox" value="Exalted Monk" v-model="partySearch.desiredVocations" />
+                  <span>EM</span>
+                </label>
               </div>
             </div>
             
@@ -108,6 +112,7 @@
               <option value="Royal Paladin">Royal Paladin</option>
               <option value="Elder Druid">Elder Druid</option>
               <option value="Master Sorcerer">Master Sorcerer</option>
+              <option value="Exalted Monk">Exalted Monk</option>
             </select>
           </div>
 
@@ -774,7 +779,8 @@ export default {
         'Elite Knight': 'EK',
         'Royal Paladin': 'RP',
         'Elder Druid': 'ED',
-        'Master Sorcerer': 'MS'
+        'Master Sorcerer': 'MS',
+        'Exalted Monk': 'EM'
       }
       return shorts[vocation] || vocation
     },
@@ -793,7 +799,8 @@ export default {
         'Elite Knight': 'EK',
         'Royal Paladin': 'RP',
         'Elder Druid': 'ED',
-        'Master Sorcerer': 'MS'
+        'Master Sorcerer': 'MS',
+        'Exalted Monk': 'EM'
       }
       return shorts[vocation] || vocation
     },

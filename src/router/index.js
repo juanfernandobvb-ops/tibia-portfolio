@@ -30,6 +30,11 @@ const routes = [
     component: () => import('../views/PartyFinder.vue')
   }
   ,{
+    path: '/finais',
+    name: 'Finais',
+    component: () => import('../views/Finais.vue')
+  }
+  ,{
     path: '/quests/the-order-of-the-stag',
     name: 'TheOrderOfTheStagQuest',
     component: () => import('../views/quests/TheOrderOfTheStagQuest.vue')

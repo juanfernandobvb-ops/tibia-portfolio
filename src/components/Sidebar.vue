@@ -13,6 +13,10 @@
         <img src="../assets/images/general/party.gif" alt="Party Finder" class="icon-img" />
         <span>Party Finder</span>
       </router-link>
+      <router-link to="/finais" class="sidebar-link">
+        <img src="../assets/images/general/Tibian_Shield.gif" alt="Finais GT/FR" class="icon-img" />
+        <span>Finais GT/FR</span>
+      </router-link>
     </nav>
   </aside>
 </template>

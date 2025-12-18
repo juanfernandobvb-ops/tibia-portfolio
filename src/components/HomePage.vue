@@ -14,6 +14,10 @@
         <img src="../assets/images/general/party.gif" alt="Party Finder" class="topic-icon-img" />
         <div class="topic-name">Party Finder</div>
       </div>
+      <div class="topic-card" @click="navigateTo('finais')">
+        <img src="../assets/images/general/Tibian_Shield.gif" alt="Finais GT/FR" class="topic-icon-img" />
+        <div class="topic-name">Finais GT/FR</div>
+      </div>
     </div>
   </div>
 </template>
