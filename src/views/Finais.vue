@@ -23,14 +23,15 @@
                         <input v-model="gtForm.nickname" type="text" placeholder="Nickname" class="input-field" />
                         <select v-model="gtForm.vocation" class="input-field">
                             <option value="">Vocação</option>
-                            <option value="Elite Knight">Elite Knight</option>
-                            <option value="Royal Paladin">Royal Paladin</option>
-                            <option value="Elder Druid">Elder Druid</option>
-                            <option value="Master Sorcerer">Master Sorcerer</option>
-                            <option value="Exalted Monk">Exalted Monk</option>
+                            <option value="EK">EK</option>
+                            <option value="ED">ED</option>
+                            <option value="Shooter">Shooter</option>
                         </select>
                         <button @click="addParticipant('gt')" :disabled="!canAddParticipant('gt')" class="add-btn">
                             Adicionar
+                        </button>
+                        <button @click="openBatchModal('gt')" class="batch-modal-btn">
+                            📝 Lote
                         </button>
                     </div>
                 </div>
@@ -61,15 +62,16 @@
                                 class="input-field" />
                             <select v-model="ferumbrasForm.vocation" class="input-field">
                                 <option value="">Vocação</option>
-                                <option value="Elite Knight">Elite Knight</option>
-                                <option value="Royal Paladin">Royal Paladin</option>
-                                <option value="Elder Druid">Elder Druid</option>
-                                <option value="Master Sorcerer">Master Sorcerer</option>
-                                <option value="Exalted Monk">Exalted Monk</option>
+                                <option value="EK">EK</option>
+                                <option value="ED">ED</option>
+                                <option value="Shooter">Shooter</option>
                             </select>
                             <button @click="addParticipant('ferumbras')" :disabled="!canAddParticipant('ferumbras')"
                                 class="add-btn">
                                 Adicionar
+                            </button>
+                            <button @click="openBatchModal('ferumbras')" class="batch-modal-btn">
+                                📝 Lote
                             </button>
                         </div>
                     </div>
@@ -109,6 +111,64 @@
                 <p v-if="passwordError" class="error-message">{{ passwordError }}</p>
             </div>
         </div>
+
+        <!-- Batch Modal -->
+        <div v-if="showBatchModal" class="modal-overlay" @click="closeBatchModal">
+            <div class="modal-content batch-modal" @click.stop>
+                <div class="modal-header">
+                    <h2>📝 Adicionar Múltiplos - {{ currentBatchBoss === 'gt' ? 'GT' : 'Ferumbras' }}</h2>
+                    <button class="modal-close" @click="closeBatchModal">✕</button>
+                </div>
+                
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label>Nomes dos Participantes:</label>
+                        <textarea 
+                            v-model="batchForm.nicknames" 
+                            placeholder="Digite os nomes separados por vírgula ou linha
+Exemplo:
+Player1, Player2, Player3
+
+Ou:
+Player1
+Player2
+Player3"
+                            class="batch-textarea"
+                            rows="5"
+                        ></textarea>
+                        <small class="form-help">Separe os nomes por vírgula ou quebra de linha</small>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Vocação para Todos:</label>
+                        <select v-model="batchForm.vocation" class="input-field">
+                            <option value="">Selecione a vocação</option>
+                            <option value="EK">EK</option>
+                            <option value="ED">ED</option>
+                            <option value="Shooter">Shooter</option>
+                        </select>
+                    </div>
+                    
+                    <div v-if="batchPreview.length > 0" class="batch-preview">
+                        <h4>Preview ({{ batchPreview.length }} participantes):</h4>
+                        <div class="preview-list">
+                            <span v-for="name in batchPreview" :key="name" class="preview-item">{{ name }}</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="modal-footer">
+                    <button @click="closeBatchModal" class="btn-secondary">Cancelar</button>
+                    <button 
+                        @click="processBatchAddition" 
+                        :disabled="!canProcessBatch"
+                        class="btn-primary"
+                    >
+                        Adicionar {{ batchPreview.length }} Participante(s)
+                    </button>
+                </div>
+            </div>
+        </div>
         </div>
     </template>
 <script>
@@ -135,7 +195,14 @@ export default {
             showPasswordModal: false,
             passwordInput: '',
             passwordError: '',
-            correctPassword: 'xanxan'
+            correctPassword: 'xanxan',
+            // Modal de adição em lote
+            showBatchModal: false,
+            currentBatchBoss: null,
+            batchForm: {
+                nicknames: '',
+                vocation: ''
+            }
         }
     },
     computed: {
@@ -144,6 +211,17 @@ export default {
         },
         sortedFerumbrasParticipants() {
             return this.sortParticipantsByVocation(this.ferumbrasParticipants)
+        },
+        batchPreview() {
+            return this.parseNicknames(this.batchForm.nicknames)
+        },
+        canProcessBatch() {
+            const nicknames = this.batchPreview
+            const list = this.currentBatchBoss === 'gt' ? this.gtParticipants : this.ferumbrasParticipants
+            
+            return nicknames.length > 0 && 
+                   this.batchForm.vocation && 
+                   (list.length + nicknames.length) <= 15
         }
     },
     async mounted() {
@@ -241,6 +319,16 @@ export default {
             return form.nickname.trim() && form.vocation;
         },
 
+        parseNicknames(nicknamesText) {
+            if (!nicknamesText || !nicknamesText.trim()) return [];
+            
+            // Divide por vírgula ou quebra de linha e limpa espaços
+            return nicknamesText
+                .split(/[,\n]/)
+                .map(name => name.trim())
+                .filter(name => name.length > 0);
+        },
+
         clearForm(boss) {
             if (boss === 'gt') {
                 this.gtForm = { nickname: '', vocation: '' };
@@ -251,11 +339,9 @@ export default {
 
         sortParticipantsByVocation(participants) {
             const vocationOrder = {
-                'Elite Knight': 1,
-                'Elder Druid': 2, 
-                'Master Sorcerer': 3,
-                'Royal Paladin': 4,
-                'Exalted Monk': 5
+                'EK': 1,
+                'ED': 2,
+                'Shooter': 3
             }
             
             return [...participants].sort((a, b) => {
@@ -305,6 +391,65 @@ export default {
 
         exitEditMode() {
             this.isEditMode = false
+        },
+
+        openBatchModal(boss) {
+            this.currentBatchBoss = boss
+            this.showBatchModal = true
+            this.batchForm = { nicknames: '', vocation: '' }
+        },
+
+        closeBatchModal() {
+            this.showBatchModal = false
+            this.currentBatchBoss = null
+            this.batchForm = { nicknames: '', vocation: '' }
+        },
+
+        async processBatchAddition() {
+            if (!this.canProcessBatch) return
+
+            try {
+                this.loading = true
+                const nicknames = this.batchPreview
+                const successCount = []
+                const errors = []
+
+                for (const nickname of nicknames) {
+                    try {
+                        const participantData = {
+                            nickname: nickname,
+                            vocation: this.batchForm.vocation
+                        }
+
+                        if (this.currentBatchBoss === 'gt') {
+                            await FinaisService.addGTParticipant(participantData)
+                        } else {
+                            await FinaisService.addFerumbrasParticipant(participantData)
+                        }
+                        
+                        successCount.push(nickname)
+                    } catch (error) {
+                        console.error(`Erro ao adicionar ${nickname}:`, error)
+                        errors.push(nickname)
+                    }
+                }
+
+                this.closeBatchModal()
+
+                // Feedback
+                if (successCount.length > 0) {
+                    alert(`✅ ${successCount.length} participante(s) adicionado(s) com sucesso!`)
+                }
+                if (errors.length > 0) {
+                    alert(`❌ Erro ao adicionar: ${errors.join(', ')}`)
+                }
+
+            } catch (error) {
+                console.error('Erro na adição em lote:', error)
+                alert('Erro ao processar adição em lote!')
+            } finally {
+                this.loading = false
+            }
         }
     }
 }
@@ -452,6 +597,227 @@ export default {
     box-shadow: none;
 }
 
+.batch-modal-btn {
+    background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 0.75rem 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 0.85rem;
+}
+
+.batch-modal-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+}
+
+/* Batch Modal Styles */
+.batch-modal {
+    max-width: 600px;
+    width: 90%;
+}
+
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+.modal-content {
+    background: var(--bg-secondary);
+    border-radius: 16px;
+    border: 2px solid var(--border-color);
+    box-shadow: var(--shadow-xl);
+    overflow: hidden;
+    animation: modalSlideIn 0.3s ease-out;
+}
+
+.modal-header {
+    background: var(--bg-primary);
+    padding: 1.5rem;
+    border-bottom: 2px solid var(--border-color);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.modal-header h2 {
+    margin: 0;
+    color: var(--accent-gold);
+    font-size: 1.3rem;
+}
+
+.modal-close {
+    background: none;
+    border: none;
+    color: var(--text-secondary);
+    font-size: 1.5rem;
+    cursor: pointer;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: all 0.3s ease;
+}
+
+.modal-close:hover {
+    background: var(--bg-tertiary);
+    color: var(--text-primary);
+}
+
+.modal-body {
+    padding: 2rem;
+}
+
+.form-group {
+    margin-bottom: 1.5rem;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    color: var(--text-primary);
+    font-weight: 600;
+}
+
+.batch-textarea {
+    background: var(--bg-secondary);
+    border: 2px solid var(--border-color);
+    border-radius: 8px;
+    padding: 0.75rem;
+    color: var(--text-primary);
+    font-family: inherit;
+    font-size: 0.9rem;
+    resize: vertical;
+    width: 100%;
+    min-height: 120px;
+    transition: all 0.3s ease;
+}
+
+.batch-textarea:focus {
+    outline: none;
+    border-color: var(--accent-blue);
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.batch-textarea::placeholder {
+    color: var(--text-secondary);
+    opacity: 0.8;
+}
+
+.form-help {
+    display: block;
+    margin-top: 0.5rem;
+    color: var(--text-secondary);
+    font-size: 0.85rem;
+}
+
+.batch-preview {
+    background: var(--bg-tertiary);
+    border-radius: 8px;
+    padding: 1rem;
+    margin-top: 1rem;
+}
+
+.batch-preview h4 {
+    margin: 0 0 0.75rem 0;
+    color: var(--accent-blue);
+    font-size: 1rem;
+}
+
+.preview-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.preview-item {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    padding: 0.25rem 0.5rem;
+    font-size: 0.85rem;
+    color: var(--text-primary);
+}
+
+.modal-footer {
+    background: var(--bg-primary);
+    padding: 1.5rem;
+    border-top: 2px solid var(--border-color);
+    display: flex;
+    gap: 1rem;
+    justify-content: flex-end;
+}
+
+.btn-secondary {
+    background: var(--bg-tertiary);
+    color: var(--text-primary);
+    border: 2px solid var(--border-color);
+    border-radius: 8px;
+    padding: 0.75rem 1.5rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.btn-secondary:hover {
+    background: var(--bg-secondary);
+    transform: translateY(-1px);
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #10b981, #059669);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 0.75rem 1.5rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.btn-primary:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+}
+
+.btn-primary:disabled {
+    background: var(--bg-tertiary);
+    color: var(--text-secondary);
+    cursor: not-allowed;
+}
+
+@keyframes modalSlideIn {
+    from {
+        opacity: 0;
+        transform: scale(0.9) translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+}
+
+/* Remove old batch form styles that are not needed */
+.batch-form,
+.batch-title,
+.batch-inputs,
+.batch-btn {
+    display: none !important;
+}
+
 .participants-list {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
@@ -574,6 +940,16 @@ export default {
     .form-inputs {
         flex-direction: column;
         align-items: stretch;
+    }
+
+    .batch-inputs {
+        flex-direction: column;
+        gap: 1rem;
+        align-items: stretch;
+    }
+
+    .batch-textarea {
+        flex: none;
     }
 
     .input-field {

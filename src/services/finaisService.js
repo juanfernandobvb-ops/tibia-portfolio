@@ -15,6 +15,13 @@ import { db } from './firebase.js'
 // Usar a mesma coleção do Party Finder para evitar problemas de permissão
 const COLLECTION_NAME = 'party-finder-players'
 
+/**
+ * IMPORTANTE: Esta coleção é compartilhada com PartyFinderService.
+ * - FinaisService usa type: 'gt-participant' e 'ferumbras-participant'
+ * - PartyFinderService usa type: 'party-finder-player'
+ * Isso evita conflitos entre os dois sistemas.
+ */
+
 // Verificar se o Firebase está configurado
 console.log('Firebase DB initialized:', !!db)
 

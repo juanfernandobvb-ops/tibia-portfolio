@@ -14,12 +14,20 @@ import { db } from './firebase.js'
 
 const COLLECTION_NAME = 'party-finder-players'
 
+/**
+ * IMPORTANTE: Esta coleção é compartilhada com FinaisService.
+ * - FinaisService usa type: 'gt-participant' e 'ferumbras-participant'
+ * - PartyFinderService usa type: 'party-finder-player'
+ * Isso evita conflitos entre os dois sistemas.
+ */
+
 export class PartyFinderService {
   // Add a new player
   static async addPlayer(playerData) {
     try {
       const docRef = await addDoc(collection(db, COLLECTION_NAME), {
         ...playerData,
+        type: 'party-finder-player',  // Identificador específico
         registeredAt: Timestamp.fromDate(new Date()),
         createdBy: this.getBrowserId()
       })
@@ -37,22 +45,27 @@ export class PartyFinderService {
   // Get all players
   static async getAllPlayers() {
     try {
-      // Get only players from last 24 hours
-      const yesterday = new Date()
-      yesterday.setHours(yesterday.getHours() - 24)
-      
+      // Get only party-finder players first, then filter by date
       const q = query(
         collection(db, COLLECTION_NAME),
-        where('registeredAt', '>', Timestamp.fromDate(yesterday)),
-        orderBy('registeredAt', 'desc')
+        where('type', '==', 'party-finder-player')  // Filtrar apenas players do Party Finder
       )
       
       const querySnapshot = await getDocs(q)
-      return querySnapshot.docs.map(doc => ({
+      const players = querySnapshot.docs.map(doc => ({
         id: doc.id,
         ...doc.data(),
-        registeredAt: doc.data().registeredAt.toDate() // Convert back to Date
+        registeredAt: doc.data().registeredAt.toDate()
       }))
+      
+      // Filter by 24 hours in code (to avoid complex Firebase indexes)
+      const yesterday = new Date()
+      yesterday.setHours(yesterday.getHours() - 24)
+      
+      return players
+        .filter(player => player.registeredAt > yesterday)
+        .sort((a, b) => b.registeredAt - a.registeredAt)
+        
     } catch (error) {
       console.error('Error getting players:', error)
       return []
@@ -62,13 +75,9 @@ export class PartyFinderService {
   // Listen for real-time updates
   static onPlayersChange(callback) {
     try {
-      const yesterday = new Date()
-      yesterday.setHours(yesterday.getHours() - 24)
-      
       const q = query(
         collection(db, COLLECTION_NAME),
-        where('registeredAt', '>', Timestamp.fromDate(yesterday)),
-        orderBy('registeredAt', 'desc')
+        where('type', '==', 'party-finder-player')  // Filtrar apenas players do Party Finder
       )
 
       return onSnapshot(q, (querySnapshot) => {
@@ -77,7 +86,16 @@ export class PartyFinderService {
           ...doc.data(),
           registeredAt: doc.data().registeredAt.toDate()
         }))
-        callback(players)
+        
+        // Filter by 24 hours in code
+        const yesterday = new Date()
+        yesterday.setHours(yesterday.getHours() - 24)
+        
+        const recentPlayers = players
+          .filter(player => player.registeredAt > yesterday)
+          .sort((a, b) => b.registeredAt - a.registeredAt)
+        
+        callback(recentPlayers)
       })
     } catch (error) {
       console.error('Error listening to players:', error)
