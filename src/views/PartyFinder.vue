@@ -3,6 +3,14 @@
     <div class="page-header">
       <h1 class="page-title">Party Finder</h1>
       <p class="page-subtitle">Cadastre sua disponibilidade e encontre outros jogadores para formar party</p>
+      <div class="header-actions">
+        <button v-if="!isEditMode" @click="requestEditMode" class="edit-btn">
+          Editar Lista
+        </button>
+        <button v-if="isEditMode" @click="exitEditMode" class="exit-edit-btn">
+          Sair da Edição
+        </button>
+      </div>
     </div>
 
     <div class="party-finder-content">
@@ -168,10 +176,10 @@
                 👁️ Ver
               </button>
               <button 
-                v-if="canRemovePlayer(player)" 
+                v-if="canRemovePlayer(player) || isEditMode" 
                 class="btn-remove" 
                 @click="removePlayer(player)"
-                title="Remover meu cadastro"
+                :title="isEditMode ? 'Remover cadastro (Modo Edição)' : 'Remover meu cadastro'"
               >
                 ✕
               </button>
@@ -191,6 +199,14 @@
               <div class="mobile-action">
                 <button class="btn-view-simple" @click="openPlayerModal(player)">
                   Ver Detalhes
+                </button>
+                <button 
+                  v-if="canRemovePlayer(player) || isEditMode" 
+                  class="btn-remove-mobile" 
+                  @click="removePlayer(player)"
+                  :title="isEditMode ? 'Remover (Modo Edição)' : 'Remover meu cadastro'"
+                >
+                  ✕
                 </button>
               </div>
             </div>
@@ -216,7 +232,7 @@
           <button class="modal-close" @click="closeRegistrationModal">✕</button>
         </div>
         
-        <div class="modal-body">
+        <form @submit.prevent="handleFormSubmit" class="modal-body">
           <div class="form-row">
             <div class="form-group">
               <label for="characterName">Nome do Personagem</label>
@@ -228,6 +244,7 @@
                   placeholder="Ex: Dark Wizard"
                   class="form-input"
                   :disabled="loading"
+                  @keyup.enter="handleCharacterNameEnter"
                 />
                 <button 
                   type="button" 
@@ -305,7 +322,7 @@
               rows="3"
             ></textarea>
           </div>
-        </div>
+        </form>
         
         <div class="modal-footer">
           <button type="button" @click="closeRegistrationModal" class="btn-secondary">Cancelar</button>
@@ -313,7 +330,7 @@
             type="button" 
             @click="registerPlayer" 
             class="btn-primary" 
-            :disabled="!characterData || newPlayer.availability.length === 0"
+            :disabled="!isFormValid"
           >
             Cadastrar Disponibilidade
           </button>
@@ -395,6 +412,38 @@
         </div>
       </div>
     </div>
+
+    <!-- Password Modal -->
+    <div v-if="showPasswordModal" class="modal-overlay" @click="closePasswordModal">
+      <div class="modal-content password-modal" @click.stop>
+        <div class="modal-header">
+          <h2>Acesso Administrativo</h2>
+          <button class="modal-close" @click="closePasswordModal">✕</button>
+        </div>
+        
+        <div class="modal-body">
+          <div class="form-group">
+            <label for="passwordInput">Digite a senha:</label>
+            <input 
+              ref="passwordField"
+              type="password" 
+              id="passwordInput"
+              v-model="passwordInput" 
+              placeholder="Senha"
+              class="form-input"
+              @keyup.enter="validatePassword"
+              autocomplete="current-password"
+            />
+            <small v-if="passwordError" class="error-text">{{ passwordError }}</small>
+          </div>
+        </div>
+        
+        <div class="modal-footer">
+          <button @click="closePasswordModal" class="btn-secondary">Cancelar</button>
+          <button @click="validatePassword" class="btn-primary">Entrar</button>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -435,7 +484,12 @@ export default {
         { id: 'afternoon', label: 'Tarde (12h-18h)', value: 'Tarde' },
         { id: 'evening', label: 'Noite (18h-24h)', value: 'Noite' }
       ],
-      players: []
+      players: [],
+      isEditMode: false,
+      showPasswordModal: false,
+      passwordInput: '',
+      passwordError: '',
+      correctPassword: 'xanxan'
     }
   },
   computed: {
@@ -505,6 +559,15 @@ export default {
 
     isPartySearchActive() {
       return this.partySearch.applied
+    },
+
+    isFormValid() {
+      return this.newPlayer.characterName?.trim() && 
+             this.characterData && 
+             this.characterData.name && 
+             this.characterData.level && 
+             this.newPlayer.availability.length > 0 &&
+             !this.loading
     }
   },
   async mounted() {
@@ -604,6 +667,28 @@ export default {
       }
     },
 
+    handleFormSubmit() {
+      // Only submit if form is valid
+      if (this.isFormValid) {
+        this.registerPlayer()
+      } else {
+        if (!this.newPlayer.characterName?.trim()) {
+          alert('Por favor, digite o nome do personagem.')
+        } else if (!this.characterData) {
+          alert('Por favor, busque um personagem válido.')
+        } else if (this.newPlayer.availability.length === 0) {
+          alert('Por favor, selecione ao menos um período de disponibilidade.')
+        }
+      }
+    },
+
+    handleCharacterNameEnter() {
+      // Only fetch character data if there's a name entered
+      if (this.newPlayer.characterName?.trim()) {
+        this.fetchCharacterData()
+      }
+    },
+
     async fetchCharacterData() {
       if (!this.newPlayer.characterName) return
 
@@ -635,8 +720,24 @@ export default {
     },
 
     async registerPlayer() {
-      if (!this.characterData || this.newPlayer.availability.length === 0) {
-        alert('Por favor, busque um personagem válido e selecione ao menos um período de disponibilidade.')
+      // Enhanced validation
+      if (!this.newPlayer.characterName || !this.newPlayer.characterName.trim()) {
+        alert('Por favor, digite o nome do personagem.')
+        return
+      }
+
+      if (!this.characterData) {
+        alert('Por favor, busque um personagem válido antes de cadastrar.')
+        return
+      }
+
+      if (!this.characterData.name || !this.characterData.level) {
+        alert('Dados do personagem incompletos. Tente buscar novamente.')
+        return
+      }
+
+      if (this.newPlayer.availability.length === 0) {
+        alert('Por favor, selecione ao menos um período de disponibilidade.')
         return
       }
 
@@ -774,6 +875,37 @@ export default {
       return playerLevel >= this.levelRange.min && playerLevel <= this.levelRange.max
     },
 
+    requestEditMode() {
+      this.showPasswordModal = true
+      this.passwordInput = ''
+      this.passwordError = ''
+      this.$nextTick(() => {
+        if (this.$refs.passwordField) {
+          this.$refs.passwordField.focus()
+        }
+      })
+    },
+
+    validatePassword() {
+      if (this.passwordInput === this.correctPassword) {
+        this.isEditMode = true
+        this.closePasswordModal()
+      } else {
+        this.passwordError = 'Senha incorreta!'
+        this.passwordInput = ''
+      }
+    },
+
+    closePasswordModal() {
+      this.showPasswordModal = false
+      this.passwordInput = ''
+      this.passwordError = ''
+    },
+
+    exitEditMode() {
+      this.isEditMode = false
+    },
+
     getVocationShort(vocation) {
       const shorts = {
         'Elite Knight': 'EK',
@@ -829,6 +961,38 @@ export default {
 .page-header {
   text-align: center;
   margin-bottom: 3rem;
+  position: relative;
+}
+
+.header-actions {
+  position: absolute;
+  top: 0;
+  right: 0;
+  display: flex;
+  gap: 0.5rem;
+}
+
+.edit-btn,
+.exit-edit-btn {
+  background: var(--gradient-primary);
+  border: none;
+  color: white;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 0.9rem;
+}
+
+.edit-btn:hover,
+.exit-edit-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-glow);
+}
+
+.exit-edit-btn {
+  background: var(--accent-red);
 }
 
 .page-title {
@@ -1881,6 +2045,23 @@ export default {
   transform: translateY(-1px);
 }
 
+.btn-remove-mobile {
+  background: none;
+  border: 1px solid var(--accent-red);
+  color: var(--accent-red);
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin-left: 0.5rem;
+}
+
+.btn-remove-mobile:hover {
+  background: var(--accent-red);
+  color: white;
+}
+
 .empty-state-list {
   display: flex;
   align-items: center;
@@ -2013,6 +2194,23 @@ export default {
   font-style: italic;
 }
 
+/* Password Modal */
+.password-modal {
+  max-width: 400px;
+}
+
+.password-modal .modal-body {
+  text-align: left;
+}
+
+.password-modal .form-group {
+  margin: 0;
+}
+
+.password-modal .form-input {
+  margin-top: 0.5rem;
+}
+
 /* Responsive Design */
 @media (max-width: 1024px) {
   .party-finder {
@@ -2034,6 +2232,12 @@ export default {
 @media (max-width: 768px) {
   .party-finder {
     padding: 1rem 0.5rem;
+  }
+  
+  .header-actions {
+    position: static;
+    justify-content: center;
+    margin-top: 1rem;
   }
   
   .page-title {
