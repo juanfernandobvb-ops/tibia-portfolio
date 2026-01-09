@@ -1,4 +1,4 @@
-# Projeto Tibia
+# Tibia Hub
 
 Projeto Vue 3 com JavaScript
 

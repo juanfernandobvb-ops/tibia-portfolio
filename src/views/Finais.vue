@@ -1,3 +1,24 @@
+    .export-btn {
+        background: linear-gradient(90deg, #4f8cff 0%, #38e6c5 100%);
+        color: #fff;
+        border: none;
+        border-radius: 6px;
+        padding: 0.4rem 1.1rem;
+        font-size: 1rem;
+        font-weight: 600;
+        margin-top: 0.5rem;
+        margin-bottom: 0.5rem;
+        cursor: pointer;
+        box-shadow: 0 2px 8px rgba(79,140,255,0.08);
+        transition: background 0.2s, transform 0.2s, box-shadow 0.2s;
+    }
+
+    .export-btn:hover, .export-btn:focus {
+        background: linear-gradient(90deg, #38e6c5 0%, #4f8cff 100%);
+        transform: translateY(-2px) scale(1.04);
+        box-shadow: 0 4px 16px rgba(56,230,197,0.15);
+        outline: none;
+    }
 <template>
     <div class="content-container">
         <div class="page-header">
@@ -16,6 +37,7 @@
                 <div class="boss-header">
                     <img src="../assets/images/general/World_Devourer.gif" alt="GT" class="boss-icon" />
                     <h3>Gravedigger Team ({{ gtParticipants.length }}/15)</h3>
+                    <button @click="exportNames('gt')" class="export-btn">Exportar Nomes</button>
                 </div>
 
                 <div class="registration-form">
@@ -54,6 +76,7 @@
                 <div class="boss-header">
                     <img src="../assets/images/general/Ferumbrasgif.gif" alt="Ferumbras" class="boss-icon" />
                     <h3>Ferumbras Team ({{ ferumbrasParticipants.length }}/15)</h3>
+                    <button @click="exportNames('ferumbras')" class="export-btn">Exportar Nomes</button>
                 </div>
 
                     <div class="registration-form">
@@ -238,6 +261,36 @@ export default {
         }
     },
     methods: {
+                exportNames(boss) {
+                    const list = boss === 'gt' ? this.sortedGTParticipants : this.sortedFerumbrasParticipants;
+                    if (!list.length) {
+                        alert('Nenhum participante para exportar!');
+                        return;
+                    }
+                    // Exporta apenas os nicknames, um por linha
+                    const names = list.map(p => p.nickname).join('\n');
+                    // Copia para área de transferência
+                    if (navigator && navigator.clipboard) {
+                        navigator.clipboard.writeText(names).then(() => {
+                            alert('Lista copiada para a área de transferência!');
+                        }, () => {
+                            alert('Erro ao copiar para a área de transferência.');
+                        });
+                    } else {
+                        // Fallback para browsers antigos
+                        const textarea = document.createElement('textarea');
+                        textarea.value = names;
+                        document.body.appendChild(textarea);
+                        textarea.select();
+                        try {
+                            document.execCommand('copy');
+                            alert('Lista copiada para a área de transferência!');
+                        } catch (err) {
+                            alert('Erro ao copiar para a área de transferência.');
+                        }
+                        document.body.removeChild(textarea);
+                    }
+                },
         async loadParticipants() {
             this.loading = true
             try {
@@ -269,27 +322,36 @@ export default {
 
         async addParticipant(boss) {
             const form = boss === 'gt' ? this.gtForm : this.ferumbrasForm
-            
+            const list = boss === 'gt' ? this.gtParticipants : this.ferumbrasParticipants;
+            const nicknameToAdd = form.nickname.trim().toLowerCase();
+
+            // Verifica duplicidade (case insensitive)
+            const alreadyExists = list.some(p => p.nickname.trim().toLowerCase() === nicknameToAdd);
+            if (alreadyExists) {
+                alert('Este nome já está na lista!');
+                return;
+            }
+
             if (this.canAddParticipant(boss) && this.isFormValid(form)) {
-                this.loading = true
+                this.loading = true;
                 try {
                     const participantData = {
                         nickname: form.nickname.trim(),
                         vocation: form.vocation
-                    }
+                    };
 
                     if (boss === 'gt') {
-                        await FinaisService.addGTParticipant(participantData)
+                        await FinaisService.addGTParticipant(participantData);
                     } else {
-                        await FinaisService.addFerumbrasParticipant(participantData)
+                        await FinaisService.addFerumbrasParticipant(participantData);
                     }
 
-                    this.clearForm(boss)
+                    this.clearForm(boss);
                 } catch (error) {
-                    console.error('Error adding participant:', error)
-                    alert('Erro ao adicionar participante. Tente novamente.')
+                    console.error('Error adding participant:', error);
+                    alert('Erro ao adicionar participante. Tente novamente.');
                 } finally {
-                    this.loading = false
+                    this.loading = false;
                 }
             }
         },

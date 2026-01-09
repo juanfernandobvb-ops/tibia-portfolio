@@ -1,7 +1,7 @@
 <template>
   <footer class="footer">
     <div class="footer-content">
-      <p class="copyright">&copy; 2025 Projeto Tibia. Todos os direitos reservados.</p>
+      <p class="copyright">&copy; 2025 Tibia Hub. Todos os direitos reservados.</p>
       <div class="footer-links">
         <a href="#" class="footer-link">Privacidade</a>
         <a href="#" class="footer-link">Termos</a>

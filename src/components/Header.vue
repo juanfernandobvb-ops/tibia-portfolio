@@ -3,7 +3,7 @@
     <div class="header-content">
       <div class="header-left">
         <div class="logo" @click="goHome">
-          <h1>Projeto Tibia</h1>
+          <h1>Tibia Hub</h1>
         </div>
       </div>
       <nav class="nav">
