@@ -36,7 +36,7 @@
             <div class="boss-section">
                 <div class="boss-header">
                     <img src="../assets/images/general/World_Devourer.gif" alt="GT" class="boss-icon" />
-                    <h3>Gravedigger Team ({{ gtParticipants.length }}/15)</h3>
+                    <h3>Final GT ({{ gtParticipants.length }}/15)</h3>
                     <button @click="exportNames('gt')" class="export-btn">Exportar Nomes</button>
                 </div>
 
