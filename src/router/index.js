@@ -49,6 +49,16 @@ const routes = [
     name: 'DesignShowcase',
     component: () => import('../views/DesignShowcase.vue')
   }
+    ,{
+      path: '/delivery',
+      name: 'Delivery',
+      component: () => import('../views/Delivery.vue')
+    },
+    {
+      path: '/huntanalyser',
+      name: 'HuntAnalyser',
+      component: () => import('../views/HuntAnalyser.vue')
+    }
 ]
 
 const router = createRouter({

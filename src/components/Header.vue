@@ -9,6 +9,7 @@
       <nav class="nav">
         <a href="#" class="nav-link" @click="goHome">Home</a>
         <a href="#" class="nav-link" @click="goToMenu">Menu</a>
+        <a href="#" class="nav-link" @click="goToDelivery">Delivery Task</a>
         <span class="nav-link disabled">Sobre o Desenvolvedor</span>
       </nav>
     </div>
@@ -38,6 +39,9 @@ export default {
     },
     goToMenu() {
       this.$router.push('/menu')
+    },
+    goToDelivery() {
+      this.$router.push('/delivery')
     },
     openDeveloperModal() {
       this.showDeveloperModal = true

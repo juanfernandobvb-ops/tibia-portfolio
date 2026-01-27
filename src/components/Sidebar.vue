@@ -17,6 +17,14 @@
         <img src="../assets/images/general/Tibian_Shield.gif" alt="Finais GT/FR" class="icon-img" />
         <span>Finais GT/FR</span>
       </router-link>
+        <router-link to="/delivery" class="sidebar-link">
+          <img src="../assets/images/general/quest.gif" alt="Delivery Task" class="icon-img" />
+          <span>Delivery Task</span>
+        </router-link>
+        <router-link to="/huntanalyser" class="sidebar-link">
+          <img src="../assets/images/general/imbuiment.gif" alt="Hunt Analyser" class="icon-img" />
+          <span>Hunt Analyser</span>
+        </router-link>
     </nav>
   </aside>
 </template>
