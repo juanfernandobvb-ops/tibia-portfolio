@@ -2,87 +2,134 @@
   <div class="huntanalyser-page">
     <h1>Hunt Analyser</h1>
 
-    <div v-if="!user" class="login-required-box">
-      <p>É necessário estar logado para visualizar o conteúdo do Hunt Analyser.</p>
-      <button class="login-btn accent-btn" @click="loginWithGoogle">Entrar</button>
+    <!-- Tabs -->
+    <div v-if="user" class="tabs-container">
+      <button :class="['tab-btn', { active: activeTab === 'solo' }]" @click="activeTab = 'solo'">Hunt Solo</button>
+      <button :class="['tab-btn', { active: activeTab === 'party' }]" @click="activeTab = 'party'">Hunt Party</button>
     </div>
-    <div v-if="user">
-      <!-- Resumo Global -->
-      <div class="summary-box">
-        <h2>Resumo Geral</h2>
-        <div class="summary-stats">
-          <div><strong>Total XP:</strong> {{ typeof totalXP === 'number' ? totalXP.toLocaleString() : 0 }}</div>
-          <div><strong>Total Balance:</strong> {{ typeof totalBalance === 'number' ? totalBalance.toLocaleString() : 0 }}</div>
-          <div><strong>Total Sessões:</strong> {{ allSessions.length }}</div>
+
+    <!-- Hunt Solo Tab -->
+    <div v-if="activeTab === 'solo'">
+      <div v-if="!user" class="login-required-msg">
+        <p>Faça login para acessar o Hunt Analyser.</p>
+      </div>
+      <template v-else>
+        <div class="character-select-box">
+          <label>Personagem:</label>
+          <select v-model="selectedCharacter">
+            <option v-for="char in characters" :key="char" :value="char">{{ char }}</option>
+          </select>
+          <input v-model="newCharacterName" placeholder="Novo personagem" class="char-input" />
+          <button @click="addCharacter" class="add-char-btn">Adicionar</button>
+          <button v-if="selectedCharacter" @click="removeCharacter(selectedCharacter)" class="remove-char-btn">Remover</button>
         </div>
-      </div>
-
-      <!-- Input de Sessão -->
-      <div class="input-section">
-        <h2>Adicionar Nova Sessão</h2>
-        <textarea v-model="sessionInput" placeholder="Cole aqui o texto do Hunt Analyser"></textarea>
-        <button @click="addSession">Adicionar Sessão</button>
-        <div v-if="inputError" class="input-error">{{ inputError }}</div>
-      </div>
-
-      <!-- Agrupamento por Dia -->
-      <div class="sessions-by-day">
-        <h2>Sessões por Dia</h2>
-        <div v-for="(sessions, day) in sessionsByDay" :key="day" class="day-group">
-          <h3>{{ day }}</h3>
-          <div class="sessions-list">
-            <div v-for="(session, idx) in sessions" :key="session.id" class="session-card" :class="{ selected: isSelected(session) }">
-              <div class="session-header">
-                <span><strong>Início:</strong> {{ session.startTime }}</span>
-                <span><strong>Fim:</strong> {{ session.endTime }}</span>
-                <button @click="toggleCompare(session)">
-                  {{ isSelected(session) ? 'Remover Comparação' : 'Comparar' }}
-                </button>
-                <button class="delete-btn" @click="deleteSession(session)">Excluir</button>
-                <button class="expand-btn" @click="toggleExpand(session)">
-                  {{ expandedSession === session.id ? 'Fechar' : 'Expandir' }}
-                </button>
-              </div>
-              <div class="session-stats">
-                <div><strong>XP:</strong> {{ session.xpGain.toLocaleString() }}</div>
-                <div><strong>Balance:</strong> {{ session.balance.toLocaleString() }}</div>
-                <div><strong>Duração:</strong> {{ session.duration }}</div>
-              </div>
-              <div v-if="expandedSession === session.id" class="expanded-input">
-                <h4>Input Completo</h4>
-                <pre>{{ session.rawInput }}</pre>
+        <div v-if="selectedCharacter">
+          <!-- Input e sessões solo para o personagem selecionado -->
+          <div class="input-section">
+            <h2>Adicionar Nova Sessão Solo</h2>
+            <textarea v-model="sessionInput" placeholder="Cole aqui o texto do Hunt Analyser"></textarea>
+            <button @click="addSessionSolo">Adicionar Sessão</button>
+            <div v-if="inputError" class="input-error">{{ inputError }}</div>
+          </div>
+          <div class="sessions-by-day">
+            <h2>Sessões de {{ selectedCharacter }}</h2>
+            <div v-for="(sessions, day) in sessionsByDaySolo" :key="day" class="day-group">
+              <h3>{{ day }}</h3>
+              <div class="sessions-list">
+                <div v-for="session in sessions" :key="session.id" class="session-card">
+                  <div class="session-header">
+                    <span><strong>Início:</strong> {{ session.startTime }}</span>
+                    <span><strong>Fim:</strong> {{ session.endTime }}</span>
+                    <button class="delete-btn" @click="deleteSession(session)">Excluir</button>
+                    <button class="expand-btn" @click="toggleExpand(session)">
+                      {{ expandedSession === session.id ? 'Fechar' : 'Expandir' }}
+                    </button>
+                  </div>
+                  <div class="session-stats">
+                    <div><strong>XP:</strong> {{ session.xpGain?.toLocaleString() }}</div>
+                    <div><strong>Balance:</strong> {{ session.balance?.toLocaleString() }}</div>
+                    <div><strong>Duração:</strong> {{ session.duration }}</div>
+                  </div>
+                  <div v-if="expandedSession === session.id" class="expanded-input">
+                    <h4>Input Completo</h4>
+                    <pre>{{ session.rawInput }}</pre>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
         </div>
-      </div>
+      </template>
+    </div>
 
-      <!-- Comparação de Sessões -->
-      <div v-if="compareSessions.length === 2" class="compare-section">
-        <h2>Comparação de Sessões</h2>
-        <div class="compare-cards">
-          <div v-for="session in compareSessions" :key="session.id" class="compare-card">
-            <h3>{{ session.date }} ({{ session.startTime }} - {{ session.endTime }})</h3>
-            <div><strong>XP:</strong> {{ session.xpGain.toLocaleString() }}</div>
-            <div><strong>Balance:</strong> {{ session.balance.toLocaleString() }}</div>
-            <div><strong>Duração:</strong> {{ session.duration }}</div>
-            <div><strong>Loot:</strong> {{ session.loot.toLocaleString() }}</div>
-            <div><strong>Supplies:</strong> {{ session.supplies.toLocaleString() }}</div>
-            <div><strong>Damage:</strong> {{ session.damage.toLocaleString() }}</div>
-            <div><strong>Healing:</strong> {{ session.healing.toLocaleString() }}</div>
-            <div><strong>Monstros Mortos:</strong>
-              <ul>
-                <li v-for="m in session.killedMonsters" :key="m.name">{{ m.count }}x {{ m.name }}</li>
-              </ul>
-            </div>
-            <div><strong>Itens Lootados:</strong>
-              <ul>
-                <li v-for="i in session.lootedItems" :key="i.name">{{ i.count }}x {{ i.name }}</li>
-              </ul>
+    <!-- Hunt Party Tab -->
+    <div v-if="activeTab === 'party'">
+      <div v-if="!user" class="login-required-msg">
+        <p>Faça login para acessar o Hunt Analyser.</p>
+      </div>
+      <template v-else>
+        <div class="input-section">
+          <h2>Adicionar Nova Sessão Party</h2>
+          <textarea v-model="sessionInputParty" placeholder="Cole aqui o texto do Hunt Analyser"></textarea>
+          <button @click="addSessionParty">Adicionar Sessão</button>
+          <div v-if="inputErrorParty" class="input-error">{{ inputErrorParty }}</div>
+        </div>
+        <div class="sessions-by-day">
+          <h2>Sessões Party</h2>
+          <div v-for="(sessions, day) in sessionsByDayParty" :key="day" class="day-group">
+            <h3>{{ day }}</h3>
+            <div class="sessions-list">
+              <div v-for="session in sessions" :key="session.id" class="session-card">
+                <div class="session-header">
+                  <span><strong>Início:</strong> {{ session.startTime }}</span>
+                  <span><strong>Fim:</strong> {{ session.endTime }}</span>
+                  <button class="delete-btn" @click="deleteSession(session)">Excluir</button>
+                  <button class="expand-btn" @click="toggleExpand(session)">
+                    {{ expandedSession === session.id ? 'Fechar' : 'Expandir' }}
+                  </button>
+                </div>
+                <div class="session-stats">
+                  <div><strong>Tipo de Loot:</strong> {{ session.lootType }}</div>
+                  <div><strong>Loot Total:</strong> {{ session.loot?.toLocaleString() }}</div>
+                  <div><strong>Supplies Total:</strong> {{ session.supplies?.toLocaleString() }}</div>
+                  <div><strong>Balance Total:</strong> {{ session.balance?.toLocaleString() }}</div>
+                  <div><strong>Duração:</strong> {{ session.duration }}</div>
+                </div>
+                <div class="party-players-list">
+                  <table>
+                    <thead>
+                      <tr>
+                        <th>Personagem</th>
+                        <th>Líder</th>
+                        <th>Loot</th>
+                        <th>Supplies</th>
+                        <th>Balance</th>
+                        <th>Damage</th>
+                        <th>Healing</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr v-for="player in session.players" :key="player.name">
+                        <td>{{ player.name }}</td>
+                        <td>{{ player.isLeader ? 'Sim' : '' }}</td>
+                        <td>{{ player.loot.toLocaleString() }}</td>
+                        <td>{{ player.supplies.toLocaleString() }}</td>
+                        <td>{{ player.balance.toLocaleString() }}</td>
+                        <td>{{ player.damage.toLocaleString() }}</td>
+                        <td>{{ player.healing.toLocaleString() }}</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+                <div v-if="expandedSession === session.id" class="expanded-input">
+                  <h4>Input Completo</h4>
+                  <pre>{{ session.rawInput }}</pre>
+                </div>
+              </div>
             </div>
           </div>
         </div>
-      </div>
+      </template>
     </div>
   </div>
 </template>
@@ -92,8 +139,10 @@ import { auth, googleProvider, db } from '../services/firebase.js'
 import { signInWithPopup, signOut, onAuthStateChanged } from 'firebase/auth'
 import { collection, addDoc, getDocs, deleteDoc, doc, query, where, orderBy, Timestamp } from 'firebase/firestore'
 
+
 function parseSession(input) {
-  // Regex helpers
+  // Solo parser (mantido para sessões solo)
+  // ...existing code...
   const get = (regex, def = '') => {
     const m = input.match(regex);
     return m ? m[1].replace(/,/g, '').replace(/\s/g, '') : def;
@@ -102,12 +151,10 @@ function parseSession(input) {
     const m = input.match(regex);
     return m ? Number(m[1].replace(/,/g, '').replace(/\s/g, '')) : def;
   };
-  // Dates
   const dateMatch = input.match(/From (\d{4}-\d{2}-\d{2}), (\d{2}:\d{2}:\d{2}) to (\d{4}-\d{2}-\d{2}), (\d{2}:\d{2}:\d{2})/);
   const date = dateMatch ? dateMatch[1] : '';
   const startTime = dateMatch ? dateMatch[2] : '';
   const endTime = dateMatch ? dateMatch[4] : '';
-  // Stats
   const duration = get(/Session: ([\d:]+h)/);
   const xpGain = getNum(/XP Gain: ([\d,]+)/);
   const loot = getNum(/Loot: ([\d,]+)/);
@@ -115,24 +162,7 @@ function parseSession(input) {
   const balance = getNum(/Balance: ([\d,]+)/);
   const damage = getNum(/Damage: ([\d,]+)/);
   const healing = getNum(/Healing: ([\d,]+)/);
-  // Killed Monsters
-  const killedMonsters = [];
-  const monstersMatch = input.match(/Killed Monsters:\n([\s\S]*?)\nLooted Items:/);
-  if (monstersMatch) {
-    monstersMatch[1].split('\n').forEach(line => {
-      const m = line.match(/(\d+)x (.+)/);
-      if (m) killedMonsters.push({ count: Number(m[1]), name: m[2] });
-    });
-  }
-  // Looted Items
-  const lootedItems = [];
-  const itemsMatch = input.match(/Looted Items:\n([\s\S]*)/);
-  if (itemsMatch) {
-    itemsMatch[1].split('\n').forEach(line => {
-      const m = line.match(/(\d+)x (.+)/);
-      if (m) lootedItems.push({ count: Number(m[1]), name: m[2] });
-    });
-  }
+  // ...existing code...
   return {
     id: Date.now() + Math.random(),
     date,
@@ -144,9 +174,62 @@ function parseSession(input) {
     supplies,
     balance,
     damage,
-    healing,
-    killedMonsters,
-    lootedItems
+    healing
+  };
+}
+
+function parsePartySession(input) {
+  // Extrai dados gerais
+  const dateMatch = input.match(/From (\d{4}-\d{2}-\d{2}), (\d{2}:\d{2}:\d{2}) to (\d{4}-\d{2}-\d{2}), (\d{2}:\d{2}:\d{2})/);
+  const date = dateMatch ? dateMatch[1] : '';
+  const startTime = dateMatch ? dateMatch[2] : '';
+  const endTime = dateMatch ? dateMatch[4] : '';
+  const durationMatch = input.match(/Session: ([\d:]+h)/);
+  const duration = durationMatch ? durationMatch[1] : '';
+  const lootTypeMatch = input.match(/Loot Type: (.+)/);
+  const lootType = lootTypeMatch ? lootTypeMatch[1].trim() : '';
+  const lootMatch = input.match(/Loot: ([\d,]+)/);
+  const loot = lootMatch ? Number(lootMatch[1].replace(/,/g, '')) : 0;
+  const suppliesMatch = input.match(/Supplies: ([\d,]+)/);
+  const supplies = suppliesMatch ? Number(suppliesMatch[1].replace(/,/g, '')) : 0;
+  const balanceMatch = input.match(/Balance: ([\d,]+)/);
+  const balance = balanceMatch ? Number(balanceMatch[1].replace(/,/g, '')) : 0;
+
+  // Extrai blocos de personagens
+  const playerBlocks = [];
+  const playerRegex = /([\w\s]+)\s*\((Leader)?\)\n([\s\S]*?)(?=\n[\w\s]+\s*\(|$)/g;
+  let match;
+  while ((match = playerRegex.exec(input)) !== null) {
+    const name = match[1].trim();
+    const isLeader = !!match[2];
+    const block = match[3];
+    const loot = (block.match(/Loot: ([\d,]+)/) || [])[1];
+    const supplies = (block.match(/Supplies: ([\d,]+)/) || [])[1];
+    const balance = (block.match(/Balance: ([\d,]+)/) || [])[1];
+    const damage = (block.match(/Damage: ([\d,]+)/) || [])[1];
+    const healing = (block.match(/Healing: ([\d,]+)/) || [])[1];
+    playerBlocks.push({
+      name,
+      isLeader,
+      loot: loot ? Number(loot.replace(/,/g, '')) : 0,
+      supplies: supplies ? Number(supplies.replace(/,/g, '')) : 0,
+      balance: balance ? Number(balance.replace(/,/g, '')) : 0,
+      damage: damage ? Number(damage.replace(/,/g, '')) : 0,
+      healing: healing ? Number(healing.replace(/,/g, '')) : 0
+    });
+  }
+
+  return {
+    id: Date.now() + Math.random(),
+    date,
+    startTime,
+    endTime,
+    duration,
+    lootType,
+    loot,
+    supplies,
+    balance,
+    players: playerBlocks
   };
 }
 
@@ -157,29 +240,36 @@ export default {
   data() {
     return {
       user: null,
+      activeTab: 'solo',
+      characters: [],
+      selectedCharacter: '',
+      newCharacterName: '',
       sessionInput: '',
+      sessionInputParty: '',
       inputError: '',
+      inputErrorParty: '',
       allSessions: [],
-      compareSessions: [],
-      expandedSession: null,
-      loadingSessions: false
+      expandedSession: null
     };
   },
   computed: {
-    sessionsByDay() {
-      // Agrupa sessões por data
-      const grouped = {};
-      this.allSessions.forEach(s => {
-        if (!grouped[s.date]) grouped[s.date] = [];
-        grouped[s.date].push(s);
-      });
-      return grouped;
+    sessionsByDaySolo() {
+      // Agrupa sessões solo por dia para o personagem selecionado
+      const grouped = {}
+      this.allSessions.filter(s => s.type === 'solo' && s.characterName === this.selectedCharacter).forEach(s => {
+        if (!grouped[s.date]) grouped[s.date] = []
+        grouped[s.date].push(s)
+      })
+      return grouped
     },
-    totalXP() {
-      return this.allSessions.reduce((sum, s) => sum + (s.xpGain || 0), 0);
-    },
-    totalBalance() {
-      return this.allSessions.reduce((sum, s) => sum + (s.balance || 0), 0);
+    sessionsByDayParty() {
+      // Agrupa sessões party por dia
+      const grouped = {}
+      this.allSessions.filter(s => s.type === 'party').forEach(s => {
+        if (!grouped[s.date]) grouped[s.date] = []
+        grouped[s.date].push(s)
+      })
+      return grouped
     }
   },
   created() {
@@ -187,61 +277,68 @@ export default {
       this.user = user
       if (user) {
         this.fetchSessions()
+        this.loadCharacters()
       } else {
         this.allSessions = []
+        this.characters = []
+        this.selectedCharacter = ''
       }
     })
   },
   methods: {
-    async loginWithGoogle() {
-      try {
-        await signInWithPopup(auth, googleProvider)
-      } catch (e) {
-        alert('Erro ao fazer login: ' + e.message)
+    addCharacter() {
+      const name = this.newCharacterName.trim()
+      if (name && !this.characters.includes(name)) {
+        this.characters.push(name)
+        this.selectedCharacter = name
+        this.saveCharacters()
+        this.newCharacterName = ''
       }
     },
-    async logout() {
-      await signOut(auth)
+    removeCharacter(name) {
+      this.characters = this.characters.filter(c => c !== name)
+      if (this.selectedCharacter === name) this.selectedCharacter = ''
+      this.saveCharacters()
+    },
+    saveCharacters() {
+      if (this.user) {
+        localStorage.setItem(`huntanalyser_chars_${this.user.uid}`, JSON.stringify(this.characters))
+      }
+    },
+    loadCharacters() {
+      if (this.user) {
+        const chars = localStorage.getItem(`huntanalyser_chars_${this.user.uid}`)
+        this.characters = chars ? JSON.parse(chars) : []
+        if (this.characters.length > 0) this.selectedCharacter = this.characters[0]
+      }
     },
     async fetchSessions() {
       if (!this.user) return
-      this.loadingSessions = true
       const q = query(
         collection(db, COLLECTION_NAME),
         where('uid', '==', this.user.uid),
         orderBy('createdAt', 'asc')
       )
       const querySnapshot = await getDocs(q)
-      this.allSessions = querySnapshot.docs.map(doc => ({
-        id: doc.id,
-        uid: doc.data().uid,
-        // Adiciona todos os campos do documento diretamente
-        ...doc.data()
-      }))
-      this.loadingSessions = false
+      this.allSessions = querySnapshot.docs.map(doc => {
+        const data = doc.data();
+        return {
+          ...data,
+          id: doc.id // Garante que o id é sempre o do Firestore
+        }
+      })
     },
-    async addSession() {
-      if (!this.user) return
+    async addSessionSolo() {
+      if (!this.user || !this.selectedCharacter) return
       try {
         const session = parseSession(this.sessionInput)
         if (!session.date) throw new Error('Data inválida ou formato incorreto.')
         session.rawInput = this.sessionInput
-        // Cria explicitamente o objeto a ser salvo
         const docToSave = {
-          date: session.date,
-          startTime: session.startTime,
-          endTime: session.endTime,
-          duration: session.duration,
-          xpGain: session.xpGain,
-          loot: session.loot,
-          supplies: session.supplies,
-          balance: session.balance,
-          damage: session.damage,
-          healing: session.healing,
-          killedMonsters: session.killedMonsters,
-          lootedItems: session.lootedItems,
-          rawInput: session.rawInput,
+          ...session,
           uid: this.user.uid,
+          type: 'solo',
+          characterName: this.selectedCharacter,
           createdAt: Timestamp.now()
         }
         await addDoc(collection(db, COLLECTION_NAME), docToSave)
@@ -252,40 +349,93 @@ export default {
         this.inputError = e.message || 'Erro ao processar sessão.'
       }
     },
+    async addSessionParty() {
+      if (!this.user) return
+      try {
+        const session = parsePartySession(this.sessionInputParty)
+        if (!session.date) throw new Error('Data inválida ou formato incorreto.')
+        session.rawInput = this.sessionInputParty
+        const docToSave = {
+          ...session,
+          uid: this.user.uid,
+          type: 'party',
+          createdAt: Timestamp.now()
+        }
+        await addDoc(collection(db, COLLECTION_NAME), docToSave)
+        this.sessionInputParty = ''
+        this.inputErrorParty = ''
+        await this.fetchSessions()
+      } catch (e) {
+        this.inputErrorParty = e.message || 'Erro ao processar sessão.'
+      }
+    },
     async deleteSession(session) {
       if (!this.user) return
       try {
-        // O id pode ser string ou number, garantir string
-        const docId = String(session.id)
-        await deleteDoc(doc(db, COLLECTION_NAME, docId))
-        this.compareSessions = this.compareSessions.filter(s => s.id !== session.id)
-        await this.fetchSessions()
+        await deleteDoc(doc(db, COLLECTION_NAME, session.id))
+        this.expandedSession = null
         this.inputError = ''
+        await this.fetchSessions()
       } catch (e) {
-        this.inputError = 'Erro ao excluir sessão: ' + (e.message || '')
+        this.inputError = 'Erro ao excluir sessão: ' + (e && e.message ? e.message : String(e))
       }
-    },
-    toggleCompare(session) {
-      const idx = this.compareSessions.findIndex(s => s.id === session.id);
-      if (idx !== -1) {
-        this.compareSessions.splice(idx, 1);
-      } else if (this.compareSessions.length < 2) {
-        this.compareSessions.push(session);
-      } else {
-        this.compareSessions = [session];
-      }
-    },
-    isSelected(session) {
-      return this.compareSessions.some(s => s.id === session.id);
     },
     toggleExpand(session) {
-      this.expandedSession = this.expandedSession === session.id ? null : session.id;
+      this.expandedSession = this.expandedSession === session.id ? null : session.id
     }
   }
 }
 </script>
 
 <style scoped>
+.tabs-container {
+  display: flex;
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+  justify-content: center;
+}
+.tab-btn {
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  border: none;
+  border-radius: 8px 8px 0 0;
+  padding: 0.8rem 2.5rem;
+  font-size: 1.1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+}
+.tab-btn.active {
+  background: var(--accent-gold);
+  color: #fff;
+}
+.character-select-box {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 2rem;
+  justify-content: center;
+}
+.char-input {
+  padding: 0.4rem 1rem;
+  border-radius: 6px;
+  border: 1px solid var(--border-accent);
+  font-size: 1rem;
+}
+.add-char-btn, .remove-char-btn {
+  background: var(--accent-gold);
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 0.4rem 1.2rem;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.add-char-btn:hover, .remove-char-btn:hover {
+  background: var(--accent-secondary);
+}
 .huntanalyser-page {
   padding: 2rem;
   max-width: 1100px;
