@@ -14,7 +14,7 @@
         <span>Party Finder</span>
       </router-link>
       <router-link to="/finais" class="sidebar-link">
-        <img src="../assets/images/general/Tibian_Shield.gif" alt="Finais GT/FR" class="icon-img" />
+        <img src="../assets/images/general/ferumbras_final.gif" alt="Finais GT/FR" class="icon-img" />
         <span>Finais GT/FR</span>
       </router-link>
       <div class="sidebar-link disabled">
@@ -22,7 +22,7 @@
         <span>Delivery Task</span>
       </div>
       <router-link to="/huntanalyser" class="sidebar-link">
-        <img src="../assets/images/general/imbuiment.gif" alt="Hunt Analyser" class="icon-img" />
+        <img src="../assets/images/general/burning_book.gif" alt="Hunt Analyser" class="icon-img" />
         <span>Hunt Analyser</span>
       </router-link>
     </nav>

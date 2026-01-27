@@ -15,8 +15,12 @@
         <div class="topic-name">Party Finder</div>
       </div>
       <div class="topic-card" @click="navigateTo('finais')">
-        <img src="../assets/images/general/Tibian_Shield.gif" alt="Finais GT/FR" class="topic-icon-img" />
+        <img src="../assets/images/general/ferumbras_final.gif" alt="Finais GT/FR" class="topic-icon-img" />
         <div class="topic-name">Finais GT/FR</div>
+      </div>
+      <div class="topic-card" @click="navigateTo('huntanalyser')">
+        <img src="../assets/images/general/burning_book.gif" alt="Hunt Analyser" class="topic-icon-img" />
+        <div class="topic-name">Hunt Analyser</div>
       </div>
       <div class="topic-card disabled">
         <img src="../assets/images/general/quest.gif" alt="Delivery Task" class="topic-icon-img" />
