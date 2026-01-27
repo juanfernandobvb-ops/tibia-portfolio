@@ -2,20 +2,10 @@
   <div class="huntanalyser-page">
     <h1>Hunt Analyser</h1>
 
-    <!-- Login/Logout -->
-    <div class="auth-box">
-      <template v-if="!user">
-        <button class="login-btn" @click="loginWithGoogle">Login com Google</button>
-      </template>
-      <template v-else>
-        <div class="user-info">
-          <img :src="user.photoURL" v-if="user.photoURL" class="user-avatar" />
-          <span>Logado como <strong>{{ user.displayName || user.email }}</strong></span>
-          <button class="logout-btn" @click="logout">Logout</button>
-        </div>
-      </template>
+    <div v-if="!user" class="login-required-box">
+      <p>É necessário estar logado para visualizar o conteúdo do Hunt Analyser.</p>
+      <button class="login-btn accent-btn" @click="loginWithGoogle">Entrar</button>
     </div>
-
     <div v-if="user">
       <!-- Resumo Global -->
       <div class="summary-box">
@@ -301,53 +291,6 @@ export default {
   max-width: 1100px;
   margin: 0 auto;
 }
-.auth-box {
-  margin-bottom: 2rem;
-  display: flex;
-  align-items: center;
-  gap: 1.5rem;
-}
-.login-btn {
-  background: #6366f1;
-  color: #fff;
-  border: none;
-  border-radius: 8px;
-  padding: 0.7rem 2rem;
-  font-size: 1.1rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background 0.2s;
-}
-.login-btn:hover {
-  background: #3730a3;
-}
-.logout-btn {
-  background: #e53e3e;
-  color: #fff;
-  border: none;
-  border-radius: 8px;
-  padding: 0.5rem 1.2rem;
-  font-size: 1rem;
-  font-weight: 600;
-  margin-left: 1rem;
-  cursor: pointer;
-  transition: background 0.2s;
-}
-.logout-btn:hover {
-  background: #b91c1c;
-}
-.user-info {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-}
-.user-avatar {
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  object-fit: cover;
-  border: 2px solid var(--accent-gold);
-}
 .summary-box {
   background: var(--bg-secondary);
   border-radius: 12px;
@@ -476,5 +419,30 @@ export default {
   padding: 1rem;
   font-size: 0.95rem;
   overflow-x: auto;
+}
+.login-required-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 40vh;
+  background: var(--bg-secondary);
+  border-radius: 12px;
+  box-shadow: var(--shadow-md);
+  margin: 3rem auto 2rem auto;
+  max-width: 500px;
+  padding: 2.5rem 2rem;
+  text-align: center;
+}
+.login-required-box p {
+  font-size: 1.2rem;
+  color: var(--text-primary);
+  margin-bottom: 1.5rem;
+  font-weight: 500;
+}
+.login-required-box .login-btn {
+  margin-top: 0.5rem;
+  font-size: 1.1rem;
+  padding: 0.7rem 2.2rem;
 }
 </style>

@@ -5,10 +5,10 @@
         <img src="../assets/images/general/imbuiment.gif" alt="Imbuiments" class="icon-img" />
         <span>Imbuiments</span>
       </router-link>
-      <router-link to="/quests" class="sidebar-link">
+      <div class="sidebar-link disabled">
         <img src="../assets/images/general/quest.gif" alt="Quests" class="icon-img" />
         <span>Quests</span>
-      </router-link>
+      </div>
       <router-link to="/party-finder" class="sidebar-link">
         <img src="../assets/images/general/party.gif" alt="Party Finder" class="icon-img" />
         <span>Party Finder</span>
@@ -17,14 +17,14 @@
         <img src="../assets/images/general/Tibian_Shield.gif" alt="Finais GT/FR" class="icon-img" />
         <span>Finais GT/FR</span>
       </router-link>
-        <router-link to="/delivery" class="sidebar-link">
-          <img src="../assets/images/general/quest.gif" alt="Delivery Task" class="icon-img" />
-          <span>Delivery Task</span>
-        </router-link>
-        <router-link to="/huntanalyser" class="sidebar-link">
-          <img src="../assets/images/general/imbuiment.gif" alt="Hunt Analyser" class="icon-img" />
-          <span>Hunt Analyser</span>
-        </router-link>
+      <div class="sidebar-link disabled">
+        <img src="../assets/images/general/quest.gif" alt="Delivery Task" class="icon-img" />
+        <span>Delivery Task</span>
+      </div>
+      <router-link to="/huntanalyser" class="sidebar-link">
+        <img src="../assets/images/general/imbuiment.gif" alt="Hunt Analyser" class="icon-img" />
+        <span>Hunt Analyser</span>
+      </router-link>
     </nav>
   </aside>
 </template>
@@ -246,5 +246,40 @@ export default {
 
 .sidebar {
   animation: slideInFloat 0.5s ease-out;
+}
+
+.sidebar-link.disabled, .topic-card.disabled {
+  pointer-events: none;
+  opacity: 0.6;
+  cursor: not-allowed;
+  position: relative;
+}
+
+/* Tooltip */
+.sidebar-link.disabled:hover::after, .topic-card.disabled:hover::after {
+  content: 'Em Desenvolvimento';
+  position: absolute;
+  left: 50%;
+  top: 100%;
+  transform: translateX(-50%);
+  background: var(--accent-secondary);
+  color: #fff;
+  padding: 0.3em 0.8em;
+  border-radius: 6px;
+  font-size: 0.85em;
+  white-space: nowrap;
+  margin-top: 0.4em;
+  z-index: 10;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.18);
+}
+
+.dev-label {
+  background: var(--accent-secondary);
+  color: #fff;
+  font-size: 0.75em;
+  border-radius: 6px;
+  padding: 0.1em 0.5em;
+  margin-left: 0.5em;
+  font-weight: 600;
 }
 </style>

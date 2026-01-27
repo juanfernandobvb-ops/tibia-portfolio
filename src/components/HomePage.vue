@@ -6,7 +6,7 @@
         <img src="../assets/images/general/imbuiment.gif" alt="Imbuiments" class="topic-icon-img" />
         <div class="topic-name">Imbuiments</div>
       </div>
-      <div class="topic-card" @click="navigateTo('quests')">
+      <div class="topic-card disabled">
         <img src="../assets/images/general/quest.gif" alt="Quests" class="topic-icon-img" />
         <div class="topic-name">Quests</div>
       </div>
@@ -18,9 +18,9 @@
         <img src="../assets/images/general/Tibian_Shield.gif" alt="Finais GT/FR" class="topic-icon-img" />
         <div class="topic-name">Finais GT/FR</div>
       </div>
-      <div class="topic-card" @click="navigateTo('huntanalyser')">
-        <img src="../assets/images/general/imbuiment.gif" alt="Hunt Analyser" class="topic-icon-img" />
-        <div class="topic-name">Hunt Analyser</div>
+      <div class="topic-card disabled">
+        <img src="../assets/images/general/quest.gif" alt="Delivery Task" class="topic-icon-img" />
+        <div class="topic-name">Delivery Task</div>
       </div>
     </div>
   </div>
@@ -132,6 +132,11 @@ export default {
   border-color: var(--accent-gold);
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
   background-color: var(--bg-tertiary);
+}
+
+.topic-card:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
 }
 
 .topic-icon {
