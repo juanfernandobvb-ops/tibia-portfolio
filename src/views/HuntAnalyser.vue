@@ -25,12 +25,20 @@
         </div>
         <div v-if="selectedCharacter">
           <!-- Input e sessões solo para o personagem selecionado -->
-          <div class="input-section">
-            <h2>Adicionar Nova Sessão Solo</h2>
-            <textarea v-model="sessionInput" placeholder="Cole aqui o texto do Hunt Analyser"></textarea>
-            <button @click="addSessionSolo">Adicionar Sessão</button>
+            <div class="input-section">
+              <button @click="showSoloModal = true">Adicionar Nova Sessão</button>
+            </div>
+        <div v-if="showSoloModal" class="modal-overlay">
+          <div class="modal-box">
+            <h2 style="margin-bottom: 1.2rem;">Adicionar Nova Sessão Solo</h2>
+            <textarea v-model="sessionInput" placeholder="Cole aqui o texto do Hunt Analyser" style="margin-bottom: 1.2rem; width: 100%;"></textarea>
+            <div style="display: flex; gap: 0.7rem; width: 100%;">
+              <button @click="addSessionSolo">Salvar Sessão</button>
+              <button @click="showSoloModal = false" class="close-modal-btn">Cancelar</button>
+            </div>
             <div v-if="inputError" class="input-error">{{ inputError }}</div>
           </div>
+        </div>
           <div class="sessions-by-day">
             <h2>Sessões de {{ selectedCharacter }}</h2>
             <div v-for="(sessions, day) in sessionsByDaySolo" :key="day" class="day-group">
@@ -249,7 +257,8 @@ export default {
       inputError: '',
       inputErrorParty: '',
       allSessions: [],
-      expandedSession: null
+      expandedSession: null,
+      showSoloModal: false
     };
   },
   computed: {
@@ -392,7 +401,8 @@ export default {
   display: flex;
   gap: 1.5rem;
   margin-bottom: 2rem;
-  justify-content: center;
+  justify-content: flex-start;
+  align-items: flex-start;
 }
 .tab-btn {
   background: var(--bg-secondary);
@@ -414,7 +424,7 @@ export default {
   align-items: center;
   gap: 1rem;
   margin-bottom: 2rem;
-  justify-content: center;
+  justify-content: flex-start;
 }
 .char-input {
   padding: 0.4rem 1rem;
@@ -440,6 +450,10 @@ export default {
   padding: 2rem;
   max-width: 1100px;
   margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: flex-start;
 }
 .summary-box {
   background: var(--bg-secondary);
@@ -455,6 +469,10 @@ export default {
 }
 .input-section {
   margin-bottom: 2.5rem;
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  justify-content: flex-start;
 }
 .input-section textarea {
   width: 100%;
@@ -481,14 +499,24 @@ export default {
 }
 .sessions-by-day {
   margin-bottom: 2.5rem;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: flex-start;
 }
 .day-group {
   margin-bottom: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: flex-start;
 }
 .sessions-list {
   display: flex;
   flex-wrap: wrap;
   gap: 1rem;
+  justify-content: flex-start;
+  align-items: flex-start;
 }
 .session-card {
   background: var(--bg-secondary);
@@ -594,5 +622,30 @@ export default {
   margin-top: 0.5rem;
   font-size: 1.1rem;
   padding: 0.7rem 2.2rem;
+}
+/* Modal Overlay e Box - global, fora do scoped */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0,0,0,0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+}
+.modal-box {
+  background: var(--bg-primary, #18181b);
+  border-radius: 16px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.25);
+  padding: 2rem 2.5rem;
+  min-width: 350px;
+  max-width: 90vw;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
 }
 </style>
