@@ -638,14 +638,44 @@ export default {
 }
 .modal-box {
   background: var(--bg-primary, #18181b);
-  border-radius: 16px;
-  box-shadow: 0 8px 32px rgba(0,0,0,0.25);
-  padding: 2rem 2.5rem;
-  min-width: 350px;
-  max-width: 90vw;
-  max-height: 90vh;
+  border-radius: 18px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.32);
+  padding: 2.5rem 3.5rem;
+  min-width: 480px;
+  max-width: 98vw;
+  max-height: 92vh;
   display: flex;
   flex-direction: column;
   align-items: stretch;
+}
+.modal-box textarea {
+  min-height: 220px;
+  font-size: 1.15rem;
+  border-radius: 10px;
+  border: 1.5px solid var(--border-accent, #6366f1);
+  padding: 1.2rem;
+  margin-bottom: 1.5rem;
+  background: #23232b;
+  color: #fff;
+  resize: vertical;
+}
+.modal-box button {
+  background: linear-gradient(90deg, #fbbf24 0%, #f59e42 100%);
+  color: #18181b;
+  border: none;
+  border-radius: 10px;
+  padding: 0.8rem 2.5rem;
+  font-size: 1.12rem;
+  font-weight: 700;
+  margin-right: 0.7rem;
+  margin-bottom: 0.2rem;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.10);
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s, box-shadow 0.2s;
+}
+.modal-box button:hover {
+  background: linear-gradient(90deg, #f59e42 0%, #fbbf24 100%);
+  color: #fff;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.18);
 }
 </style>
