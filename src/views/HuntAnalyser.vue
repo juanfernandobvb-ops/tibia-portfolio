@@ -432,26 +432,40 @@ export default {
 
 <style scoped>
 .huntanalyser-header-fixed {
-  position: fixed;
-  top: 64px; /* ajuste conforme a altura do header principal */
-  left: 0;
+  position: relative;
   width: 100%;
-  z-index: 101;
+  box-sizing: border-box;
+  z-index: 89; /* menor que o z-index da sidebar (90) */
   background: linear-gradient(90deg, #23232b 0%, #18181b 100%);
   box-shadow: 0 2px 8px rgba(0,0,0,0.13);
   border-bottom: 3px solid var(--accent-gold, #fbbf24);
   padding: 1.1rem 0 1.1rem 0;
   margin-bottom: 1.5rem;
+  transition: left 0.2s, width 0.2s, top 0.2s;
+}
+@media (max-width: 1024px) {
+  .huntanalyser-header-fixed {
+    left: 215px;
+    width: calc(100vw - 215px);
+  }
+}
+@media (max-width: 768px) {
+  .huntanalyser-header-fixed {
+    left: 0;
+    width: 100vw;
+    top: 64px;
+  }
 }
 .huntanalyser-header-fixed .header-content {
   display: flex;
   gap: 2.5rem;
   align-items: center;
-  font-size: 1.1rem;
+  font-size: 1rem;
   font-weight: 500;
   max-width: 1100px;
   margin: 0 auto;
   color: var(--text-primary, #fff);
+  padding-left: 1rem;
 }
 .tabs-container {
   display: flex;
