@@ -535,7 +535,7 @@ export default {
 .huntanalyser-page {
   padding-top: 110px; /* espaço para o header fixo */
   padding: 2rem;
-  max-width: 1100px;
+  /* max-width: 1100px; */
   margin: 0 auto;
   display: flex;
   flex-direction: column;
