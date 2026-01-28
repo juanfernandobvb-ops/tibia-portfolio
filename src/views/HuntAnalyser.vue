@@ -432,11 +432,11 @@ export default {
 
 <style scoped>
 .huntanalyser-header-fixed {
-  position: sticky;
-  top: 0;
+  position: fixed;
+  top: 64px; /* ajuste conforme a altura do header principal */
   left: 0;
   width: 100%;
-  z-index: 100;
+  z-index: 101;
   background: linear-gradient(90deg, #23232b 0%, #18181b 100%);
   box-shadow: 0 2px 8px rgba(0,0,0,0.13);
   border-bottom: 3px solid var(--accent-gold, #fbbf24);
@@ -503,6 +503,7 @@ export default {
   background: var(--accent-secondary);
 }
 .huntanalyser-page {
+  padding-top: 110px; /* espaço para o header fixo */
   padding: 2rem;
   max-width: 1100px;
   margin: 0 auto;
