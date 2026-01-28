@@ -1,5 +1,19 @@
 <template>
   <div class="huntanalyser-page">
+    <div class="huntanalyser-header-fixed">
+      <!-- Exemplo de dados exibidos, substitua conforme necessário -->
+      <div class="header-content">
+        <span v-if="selectedCharacter"><strong>Personagem:</strong> {{ selectedCharacter }}</span>
+        <span><strong>Total XP:</strong> {{ totalXp.toLocaleString() }}</span>
+        <span><strong>Total Balance:</strong> {{ totalBalance.toLocaleString() }}</span>
+        <span v-if="activeTab === 'solo' && sessionsByDaySolo && Object.keys(sessionsByDaySolo).length">
+          <strong>Total Sessões Solo:</strong> {{ Object.values(sessionsByDaySolo).reduce((acc, arr) => acc + arr.length, 0) }}
+        </span>
+        <span v-if="activeTab === 'party' && sessionsByDayParty && Object.keys(sessionsByDayParty).length">
+          <strong>Total Sessões Party:</strong> {{ Object.values(sessionsByDayParty).reduce((acc, arr) => acc + arr.length, 0) }}
+        </span>
+      </div>
+    </div>
     <h1>Hunt Analyser</h1>
 
     <!-- Tabs -->
@@ -279,6 +293,26 @@ export default {
         grouped[s.date].push(s)
       })
       return grouped
+    },
+    totalXp() {
+      // Soma XP apenas das sessões do personagem selecionado
+      let total = 0;
+      for (const s of this.allSessions) {
+        if (s.type === 'solo' && s.characterName === this.selectedCharacter && typeof s.xpGain === 'number') {
+          total += s.xpGain;
+        }
+      }
+      return total;
+    },
+    totalBalance() {
+      // Soma Balance apenas das sessões do personagem selecionado
+      let total = 0;
+      for (const s of this.allSessions) {
+        if (s.type === 'solo' && s.characterName === this.selectedCharacter && typeof s.balance === 'number') {
+          total += s.balance;
+        }
+      }
+      return total;
     }
   },
   created() {
@@ -397,6 +431,28 @@ export default {
 </script>
 
 <style scoped>
+.huntanalyser-header-fixed {
+  position: sticky;
+  top: 0;
+  left: 0;
+  width: 100%;
+  z-index: 100;
+  background: linear-gradient(90deg, #23232b 0%, #18181b 100%);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.13);
+  border-bottom: 3px solid var(--accent-gold, #fbbf24);
+  padding: 1.1rem 0 1.1rem 0;
+  margin-bottom: 1.5rem;
+}
+.huntanalyser-header-fixed .header-content {
+  display: flex;
+  gap: 2.5rem;
+  align-items: center;
+  font-size: 1.1rem;
+  font-weight: 500;
+  max-width: 1100px;
+  margin: 0 auto;
+  color: var(--text-primary, #fff);
+}
 .tabs-container {
   display: flex;
   gap: 1.5rem;
