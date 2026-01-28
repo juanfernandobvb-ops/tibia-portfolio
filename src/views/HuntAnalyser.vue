@@ -16,6 +16,11 @@
     </div>
     <h1>Hunt Analyser</h1>
 
+    <CenterModal v-if="showSessionModal" @close="showSessionModal = false">
+      <h2 style="margin-bottom: 1.2rem;">Input Completo</h2>
+      <pre style="max-height: 60vh; overflow:auto;">{{ sessionModalContent }}</pre>
+    </CenterModal>
+
     <!-- Tabs -->
     <div v-if="user" class="tabs-container">
       <button :class="['tab-btn', { active: activeTab === 'solo' }]" @click="activeTab = 'solo'">Hunt Solo</button>
@@ -63,8 +68,8 @@
                     <span><strong>Início:</strong> {{ session.startTime }}</span>
                     <span><strong>Fim:</strong> {{ session.endTime }}</span>
                     <button class="delete-btn" @click="deleteSession(session)">Excluir</button>
-                    <button class="expand-btn" @click="toggleExpand(session)">
-                      {{ expandedSession === session.id ? 'Fechar' : 'Expandir' }}
+                    <button class="expand-btn" @click="openSessionModal(session.rawInput)">
+                      Expandir
                     </button>
                   </div>
                   <div class="session-stats">
@@ -106,8 +111,8 @@
                   <span><strong>Início:</strong> {{ session.startTime }}</span>
                   <span><strong>Fim:</strong> {{ session.endTime }}</span>
                   <button class="delete-btn" @click="deleteSession(session)">Excluir</button>
-                  <button class="expand-btn" @click="toggleExpand(session)">
-                    {{ expandedSession === session.id ? 'Fechar' : 'Expandir' }}
+                  <button class="expand-btn" @click="openSessionModal(session.rawInput)">
+                    Expandir
                   </button>
                 </div>
                 <div class="session-stats">
@@ -160,7 +165,7 @@
 import { auth, googleProvider, db } from '../services/firebase.js'
 import { signInWithPopup, signOut, onAuthStateChanged } from 'firebase/auth'
 import { collection, addDoc, getDocs, deleteDoc, doc, query, where, orderBy, Timestamp } from 'firebase/firestore'
-
+import CenterModal from '../components/CenterModal.vue'
 
 function parseSession(input) {
   // Solo parser (mantido para sessões solo)
@@ -259,6 +264,9 @@ const COLLECTION_NAME = 'hunt-analyser-sessions'
 
 export default {
   name: 'HuntAnalyser',
+  components: {
+    CenterModal,
+  },
   data() {
     return {
       user: null,
@@ -272,7 +280,9 @@ export default {
       inputErrorParty: '',
       allSessions: [],
       expandedSession: null,
-      showSoloModal: false
+      showSoloModal: false,
+      showSessionModal: false,
+      sessionModalContent: '',
     };
   },
   computed: {
@@ -425,6 +435,10 @@ export default {
     },
     toggleExpand(session) {
       this.expandedSession = this.expandedSession === session.id ? null : session.id
+    },
+    openSessionModal(content) {
+      this.sessionModalContent = content;
+      this.showSessionModal = true;
     }
   }
 }
