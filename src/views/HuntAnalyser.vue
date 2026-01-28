@@ -183,7 +183,8 @@ function parseSession(input) {
   const startTime = dateMatch ? dateMatch[2] : '';
   const endTime = dateMatch ? dateMatch[4] : '';
   const duration = get(/Session: ([\d:]+h)/);
-  const xpGain = getNum(/XP Gain: ([\d,]+)/);
+  const rawXpGain = getNum(/^Raw XP Gain: ([\d,]+)/m);
+  const xpGain = getNum(/^XP Gain: ([\d,]+)/m);
   const loot = getNum(/Loot: ([\d,]+)/);
   const supplies = getNum(/Supplies: ([\d,]+)/);
   const balance = getNum(/Balance: ([\d,]+)/);
@@ -197,6 +198,7 @@ function parseSession(input) {
     endTime,
     duration,
     xpGain,
+    rawXpGain,
     loot,
     supplies,
     balance,
