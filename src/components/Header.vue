@@ -25,7 +25,7 @@
         </template>
       </div>
     </div>
-    <!-- Modal -->
+    
     <DeveloperModal :visible="showDeveloperModal" @close="closeDeveloperModal" />
   </header>
 </template>
