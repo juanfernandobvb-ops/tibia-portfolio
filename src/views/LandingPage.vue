@@ -46,6 +46,13 @@
             <h3>Party Finder</h3>
             <p>Encontre jogadores compatíveis com seu level, cadastre sua disponibilidade e forme parties de forma rápida e eficiente.</p>
           </div>
+          <div class="feature-item" @click="goToHuntAnalyser">
+            <div class="feature-icon">
+              <img src="../assets/images/general/burning_book.gif" alt="Hunt Analyser" class="feature-icon-img" />
+            </div>
+            <h3>Hunt Analyser</h3>
+            <p>Registre, analise e acompanhe suas sessões de hunt. Veja estatísticas de XP, balance, duração e evolua seu desempenho no Tibia!</p>
+          </div>
         </div>
       </div>
     </section>
@@ -72,6 +79,9 @@ export default {
     },
     goToPartyFinder() {
       this.$router.push('/party-finder')
+    },
+    goToHuntAnalyser() {
+      this.$router.push('/hunt-analyser')
     }
   }
 }
