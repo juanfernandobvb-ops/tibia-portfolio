@@ -7,10 +7,12 @@
         <span><strong>Total XP:</strong> {{ totalXp.toLocaleString() }}</span>
         <span><strong>Total Balance:</strong> {{ totalBalance.toLocaleString() }}</span>
         <span v-if="activeTab === 'solo' && sessionsByDaySolo && Object.keys(sessionsByDaySolo).length">
-          <strong>Total Sessões Solo:</strong> {{ Object.values(sessionsByDaySolo).reduce((acc, arr) => acc + arr.length, 0) }}
+          <strong>Total Sessões Solo:</strong> {{Object.values(sessionsByDaySolo).reduce((acc, arr) => acc +
+            arr.length, 0)}}
         </span>
         <span v-if="activeTab === 'party' && sessionsByDayParty && Object.keys(sessionsByDayParty).length">
-          <strong>Total Sessões Party:</strong> {{ Object.values(sessionsByDayParty).reduce((acc, arr) => acc + arr.length, 0) }}
+          <strong>Total Sessões Party:</strong> {{Object.values(sessionsByDayParty).reduce((acc, arr) => acc +
+            arr.length, 0)}}
         </span>
       </div>
     </div>
@@ -40,42 +42,54 @@
           </select>
           <input v-model="newCharacterName" placeholder="Novo personagem" class="char-input" />
           <button @click="addCharacter" class="add-char-btn">Adicionar</button>
-          <button v-if="selectedCharacter" @click="removeCharacter(selectedCharacter)" class="remove-char-btn">Remover</button>
+          <button v-if="selectedCharacter" @click="removeCharacter(selectedCharacter)"
+            class="remove-char-btn">Remover</button>
         </div>
         <div v-if="selectedCharacter">
           <!-- Input e sessões solo para o personagem selecionado -->
-            <div class="input-section">
-              <button @click="showSoloModal = true">Adicionar Nova Sessão</button>
-            </div>
-        <div v-if="showSoloModal" class="modal-overlay">
-          <div class="modal-box">
-            <h2 style="margin-bottom: 1.2rem;">Adicionar Nova Sessão Solo</h2>
-            <textarea v-model="sessionInput" placeholder="Cole aqui o texto do Hunt Analyser" style="margin-bottom: 1.2rem; width: 100%;"></textarea>
-            <div style="display: flex; gap: 0.7rem; width: 100%;">
-              <button @click="addSessionSolo">Salvar Sessão</button>
-              <button @click="showSoloModal = false" class="close-modal-btn">Cancelar</button>
-            </div>
-            <div v-if="inputError" class="input-error">{{ inputError }}</div>
+          <div class="input-section">
+            <button @click="showSoloModal = true">Adicionar Nova Sessão</button>
           </div>
-        </div>
+          <div v-if="showSoloModal" class="modal-overlay">
+            <div class="modal-box">
+              <h2 style="margin-bottom: 1.2rem;">Adicionar Nova Sessão Solo</h2>
+              <textarea v-model="sessionInput" placeholder="Cole aqui o texto do Hunt Analyser"
+                style="margin-bottom: 1.2rem; width: 100%;"></textarea>
+              <div style="display: flex; gap: 0.7rem; width: 100%;">
+                <button @click="addSessionSolo">Salvar Sessão</button>
+                <button @click="showSoloModal = false" class="close-modal-btn">Cancelar</button>
+              </div>
+              <div v-if="inputError" class="input-error">{{ inputError }}</div>
+            </div>
+          </div>
           <div class="sessions-by-day">
             <h2>Sessões de {{ selectedCharacter }}</h2>
             <div v-for="(sessions, day) in sessionsByDaySolo" :key="day" class="day-group">
               <h3>{{ day }}</h3>
               <div class="sessions-list">
                 <div v-for="session in sessions" :key="session.id" class="session-card">
-                  <div class="session-header">
-                    <span><strong>Início:</strong> {{ session.startTime }}</span>
-                    <span><strong>Fim:</strong> {{ session.endTime }}</span>
-                    <button class="delete-btn" @click="deleteSession(session)">Excluir</button>
-                    <button class="expand-btn" @click="openSessionModal(session.rawInput)">
-                      Expandir
-                    </button>
-                  </div>
                   <div class="session-stats">
-                    <div><strong>XP:</strong> {{ session.xpGain?.toLocaleString() }}</div>
-                    <div><strong>Balance:</strong> {{ session.balance?.toLocaleString() }}</div>
-                    <div><strong>Duração:</strong> {{ session.duration }}</div>
+                    <div class="session-stats-info">
+                      <div class="stats-label exp-size">
+                        <div class="stats-title">Exp</div>
+                        <div class="stats-info">{{ session.xpGain?.toLocaleString() }}</div>
+                      </div>
+                      <div class="stats-label balance-size">
+                        <div class="stats-title">Balance</div>
+                        <div class="stats-info">{{ session.balance?.toLocaleString() }}</div>
+                      </div>
+                      <div class="stats-label duration-size">
+                        <div class="stats-title">Duração</div>
+                        <div class="stats-info">{{ session.duration }}</div>
+                      </div>
+
+                    </div>
+                    <div class="session-stats-btn">
+                      <button class="delete-btn" @click="deleteSession(session)">Excluir</button>
+                      <button class="expand-btn" @click="openSessionModal(session.rawInput)">
+                        Expandir
+                      </button>
+                    </div>
                   </div>
                   <div v-if="expandedSession === session.id" class="expanded-input">
                     <h4>Input Completo</h4>
@@ -451,20 +465,23 @@ export default {
   position: relative;
   width: 100%;
   box-sizing: border-box;
-  z-index: 89; /* menor que o z-index da sidebar (90) */
+  z-index: 89;
+  /* menor que o z-index da sidebar (90) */
   background: linear-gradient(90deg, #23232b 0%, #18181b 100%);
-  box-shadow: 0 2px 8px rgba(0,0,0,0.13);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.13);
   border-bottom: 3px solid var(--accent-gold, #fbbf24);
   padding: 1.1rem 0 1.1rem 0;
   margin-bottom: 1.5rem;
   transition: left 0.2s, width 0.2s, top 0.2s;
 }
+
 @media (max-width: 1024px) {
   .huntanalyser-header-fixed {
     left: 215px;
     width: calc(100vw - 215px);
   }
 }
+
 @media (max-width: 768px) {
   .huntanalyser-header-fixed {
     left: 0;
@@ -472,6 +489,7 @@ export default {
     top: 64px;
   }
 }
+
 .huntanalyser-header-fixed .header-content {
   display: flex;
   gap: 2.5rem;
@@ -483,6 +501,7 @@ export default {
   color: var(--text-primary, #fff);
   padding-left: 1rem;
 }
+
 .tabs-container {
   display: flex;
   gap: 1.5rem;
@@ -490,6 +509,7 @@ export default {
   justify-content: flex-start;
   align-items: flex-start;
 }
+
 .tab-btn {
   background: var(--bg-secondary);
   color: var(--text-primary);
@@ -501,10 +521,12 @@ export default {
   cursor: pointer;
   transition: background 0.2s, color 0.2s;
 }
+
 .tab-btn.active {
   background: var(--accent-gold);
   color: #fff;
 }
+
 .character-select-box {
   display: flex;
   align-items: center;
@@ -512,13 +534,16 @@ export default {
   margin-bottom: 2rem;
   justify-content: flex-start;
 }
+
 .char-input {
   padding: 0.4rem 1rem;
   border-radius: 6px;
   border: 1px solid var(--border-accent);
   font-size: 1rem;
 }
-.add-char-btn, .remove-char-btn {
+
+.add-char-btn,
+.remove-char-btn {
   background: var(--accent-gold);
   color: #fff;
   border: none;
@@ -529,11 +554,15 @@ export default {
   cursor: pointer;
   transition: background 0.2s;
 }
-.add-char-btn:hover, .remove-char-btn:hover {
+
+.add-char-btn:hover,
+.remove-char-btn:hover {
   background: var(--accent-secondary);
 }
+
 .huntanalyser-page {
-  padding-top: 110px; /* espaço para o header fixo */
+  padding-top: 110px;
+  /* espaço para o header fixo */
   padding: 2rem;
   /* max-width: 1100px; */
   margin: 0 auto;
@@ -542,6 +571,7 @@ export default {
   align-items: flex-start;
   justify-content: flex-start;
 }
+
 .summary-box {
   background: var(--bg-secondary);
   border-radius: 12px;
@@ -549,11 +579,13 @@ export default {
   margin-bottom: 2rem;
   box-shadow: var(--shadow-md);
 }
+
 .summary-stats {
   display: flex;
   gap: 2rem;
   font-size: 1.2rem;
 }
+
 .input-section {
   margin-bottom: 2.5rem;
   display: flex;
@@ -561,6 +593,7 @@ export default {
   align-items: flex-start;
   justify-content: flex-start;
 }
+
 .input-section textarea {
   width: 100%;
   min-height: 120px;
@@ -571,6 +604,7 @@ export default {
   font-size: 1rem;
   resize: vertical;
 }
+
 .input-section button {
   background: var(--accent-gold);
   color: #fff;
@@ -580,17 +614,25 @@ export default {
   font-weight: 600;
   cursor: pointer;
 }
+
 .input-error {
   color: #e53e3e;
   margin-top: 0.5rem;
 }
+
 .sessions-by-day {
   margin-bottom: 2.5rem;
   display: flex;
   flex-direction: column;
   align-items: flex-start;
   justify-content: flex-start;
+  h2{
+    color: #e53e3e;
+    border-bottom: 1px solid #e53e3e;
+    margin-bottom: 1rem;
+  }
 }
+
 .day-group {
   margin-bottom: 1.5rem;
   display: flex;
@@ -598,6 +640,7 @@ export default {
   align-items: flex-start;
   justify-content: flex-start;
 }
+
 .sessions-list {
   display: flex;
   flex-wrap: wrap;
@@ -605,42 +648,93 @@ export default {
   justify-content: flex-start;
   align-items: flex-start;
 }
+
 .session-card {
   background: var(--bg-secondary);
   border-radius: 10px;
-  padding: 1rem;
-  min-width: 220px;
+  /* padding: 1rem; */
+  width: 100%;
+  height: 3rem;
   box-shadow: var(--shadow-sm);
   border: 2px solid transparent;
   transition: border 0.2s;
 }
+
 .session-card.selected {
   border: 2px solid var(--accent-gold);
 }
+
 .session-header {
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-start;
   align-items: center;
   margin-bottom: 0.5rem;
-  gap: 0.5rem;
+  gap: 3.5rem;
 }
+
 .session-stats {
   font-size: 1rem;
   display: flex;
-  flex-direction: column;
-  gap: 0.2rem;
+  justify-content: flex-start;
+  align-items: center;
+  padding: 0 2rem;
+  height: 100%;
+  gap: 3.5rem;
+
+  .session-stats-info {
+    display: flex;
+    gap: 1.5rem;
+    width: 50%;
+
+    .exp-size {
+      width: 33%;
+    }
+    .balance-size {
+      width: 33%;
+    }
+    .duration-size {
+      width: 33%;
+    }
+
+    .stats-label {
+      display: flex;
+      gap: 0.5rem;
+
+      .stats-title {
+        font-weight: 600;
+        color: #f59e42;
+      }
+
+      .stats-info {
+        width: 80%;
+        border: 1px solid #333;
+        border-radius: 4px;
+        padding: 0.1rem 0.5rem;
+      }
+    }
+  }
+
+  .session-stats-btn {
+    display: flex;
+    gap: 1.5rem;
+    justify-content: flex-end;
+    width: 50%;
+  }
 }
+
 .compare-section {
   background: var(--bg-secondary);
   border-radius: 12px;
   padding: 1.5rem;
   box-shadow: var(--shadow-md);
 }
+
 .compare-cards {
   display: flex;
   gap: 2rem;
   margin-top: 1rem;
 }
+
 .compare-card {
   background: var(--bg-primary);
   border-radius: 10px;
@@ -648,6 +742,7 @@ export default {
   min-width: 300px;
   box-shadow: var(--shadow-sm);
 }
+
 .delete-btn {
   background: #e53e3e;
   color: #fff;
@@ -659,9 +754,11 @@ export default {
   cursor: pointer;
   transition: background 0.2s;
 }
+
 .delete-btn:hover {
   background: #b91c1c;
 }
+
 .expand-btn {
   background: #6366f1;
   color: #fff;
@@ -673,9 +770,11 @@ export default {
   cursor: pointer;
   transition: background 0.2s;
 }
+
 .expand-btn:hover {
   background: #3730a3;
 }
+
 .expanded-input {
   background: #18181b;
   color: #e5e7eb;
@@ -685,6 +784,7 @@ export default {
   font-size: 0.95rem;
   overflow-x: auto;
 }
+
 .login-required-box {
   display: flex;
   flex-direction: column;
@@ -699,17 +799,20 @@ export default {
   padding: 2.5rem 2rem;
   text-align: center;
 }
+
 .login-required-box p {
   font-size: 1.2rem;
   color: var(--text-primary);
   margin-bottom: 1.5rem;
   font-weight: 500;
 }
+
 .login-required-box .login-btn {
   margin-top: 0.5rem;
   font-size: 1.1rem;
   padding: 0.7rem 2.2rem;
 }
+
 /* Modal Overlay e Box - global, fora do scoped */
 .modal-overlay {
   position: fixed;
@@ -717,16 +820,17 @@ export default {
   left: 0;
   width: 100vw;
   height: 100vh;
-  background: rgba(0,0,0,0.6);
+  background: rgba(0, 0, 0, 0.6);
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 9999;
 }
+
 .modal-box {
   background: var(--bg-primary, #18181b);
   border-radius: 18px;
-  box-shadow: 0 8px 32px rgba(0,0,0,0.32);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.32);
   padding: 2.5rem 3.5rem;
   min-width: 480px;
   max-width: 98vw;
@@ -735,6 +839,7 @@ export default {
   flex-direction: column;
   align-items: stretch;
 }
+
 .modal-box textarea {
   min-height: 220px;
   font-size: 1.15rem;
@@ -746,6 +851,7 @@ export default {
   color: #fff;
   resize: vertical;
 }
+
 .modal-box button {
   background: linear-gradient(90deg, #fbbf24 0%, #f59e42 100%);
   color: #18181b;
@@ -756,13 +862,14 @@ export default {
   font-weight: 700;
   margin-right: 0.7rem;
   margin-bottom: 0.2rem;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.10);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.10);
   cursor: pointer;
   transition: background 0.2s, color 0.2s, box-shadow 0.2s;
 }
+
 .modal-box button:hover {
   background: linear-gradient(90deg, #f59e42 0%, #fbbf24 100%);
   color: #fff;
-  box-shadow: 0 4px 16px rgba(0,0,0,0.18);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.18);
 }
 </style>
