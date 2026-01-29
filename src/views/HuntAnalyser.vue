@@ -678,6 +678,7 @@ export default {
   justify-content: flex-start;
   align-items: center;
   padding: 0 2rem;
+  width: 80vw !important;
   height: 100%;
   gap: 3.5rem;
 
