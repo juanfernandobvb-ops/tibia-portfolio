@@ -86,10 +86,12 @@ export default {
           const charData = await charRes.json()
           const deaths = (charData.character && charData.character.deaths) ? charData.character.deaths : []
           deaths.forEach(d => {
+            // Mascara para remover 'Died at Level ... by '
+            let reason = d.reason.replace(/^Died at Level \d+ by /i, '')
             deathsArr.push({
               id: member.name + d.time + d.level,
               time: d.time,
-              msg: `${member.name} (Lv${d.level}) morreu para ${d.reason}`
+              msg: `${member.name} (Lv${d.level}) morreu para ${reason}`
             })
           })
         }
