@@ -29,6 +29,10 @@
         <img src="../assets/images/general/quest.gif" alt="Hunted List" class="icon-img" />
         <span>Hunted List</span>
       </router-link>
+      <router-link to="/blackpanthers" class="sidebar-link">
+        <img src="../assets/images/general/party.gif" alt="Black Panthers" class="icon-img" />
+        <span>Black Panthers</span>
+      </router-link>
     </nav>
   </aside>
 </template>

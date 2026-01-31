@@ -14,6 +14,7 @@
             <span>Level: {{ player.level }}</span> |
             <span>Vocação: {{ player.vocation }}</span> |
             <span :class="{ online: player.online, offline: !player.online }">
+              <span :class="['status-dot', player.online ? 'online' : 'offline']"></span>
               {{ player.online ? 'Online' : 'Offline' }}
             </span>
             <button @click="removePlayer(player.name)">Remover</button>
@@ -152,17 +153,116 @@ export default {
 <style scoped>
 .hunted-list-page {
   padding: 2rem;
+  background: #18181b;
+  min-height: 100vh;
 }
 .add-player-box {
   margin-bottom: 1.5rem;
+  display: flex;
+  gap: 0.5rem;
+}
+.add-player-box input {
+  flex: 1;
+  padding: 0.6rem 1rem;
+  border-radius: 8px;
+  border: 1.5px solid #6366f1;
+  background: #23232b;
+  color: #fff;
+  font-size: 1.1rem;
+}
+.add-player-box button {
+  background: linear-gradient(90deg, #fbbf24 0%, #f59e42 100%);
+  color: #18181b;
+  border: none;
+  border-radius: 8px;
+  padding: 0.6rem 1.5rem;
+  font-weight: 700;
+  font-size: 1.1rem;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+}
+.add-player-box button:hover {
+  background: linear-gradient(90deg, #f59e42 0%, #fbbf24 100%);
+  color: #fff;
 }
 .lists-container {
   display: flex;
-  gap: 2rem;
+  gap: 2.5rem;
+  flex-wrap: wrap;
 }
 .hunted-list, .hunted-online-list {
-  flex: 1;
+  flex: 1 1 320px;
+  background: #23232b;
+  border-radius: 14px;
+  padding: 1.5rem 1.2rem 1.2rem 1.2rem;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.13);
+  min-width: 320px;
+  margin-bottom: 2rem;
 }
-.online { color: green; font-weight: bold; }
-.offline { color: #888; }
+.hunted-list h2, .hunted-online-list h2 {
+  margin-top: 0;
+  margin-bottom: 1.2rem;
+  font-size: 1.35rem;
+  color: #fbbf24;
+  letter-spacing: 0.5px;
+}
+.hunted-list ul, .hunted-online-list ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.hunted-list li, .hunted-online-list li {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  background: #23232b;
+  border-bottom: 1px solid #29293a;
+  padding: 0.7rem 0.2rem;
+  font-size: 1.08rem;
+  transition: background 0.18s;
+}
+.hunted-list li:last-child, .hunted-online-list li:last-child {
+  border-bottom: none;
+}
+.status-dot {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  margin-right: 0.4em;
+}
+.online {
+  color: #22c55e;
+  font-weight: bold;
+}
+.offline {
+  color: #888;
+}
+.status-dot.online {
+  background: #22c55e;
+}
+.status-dot.offline {
+  background: #888;
+}
+.hunted-list button {
+  margin-left: auto;
+  background: #f87171;
+  color: #fff;
+  border: none;
+  border-radius: 7px;
+  padding: 0.35rem 1.1rem;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.18s;
+}
+.hunted-list button:hover {
+  background: #dc2626;
+}
+@media (max-width: 900px) {
+  .lists-container {
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+}
 </style>
