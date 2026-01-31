@@ -58,6 +58,11 @@ const routes = [
       path: '/huntanalyser',
       name: 'HuntAnalyser',
       component: () => import('../views/HuntAnalyser.vue')
+    },
+    {
+      path: '/huntedlist',
+      name: 'HuntedList',
+      component: () => import('../views/HuntedList.vue')
     }
 ]
 

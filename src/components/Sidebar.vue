@@ -25,6 +25,10 @@
         <img src="../assets/images/general/burning_book.gif" alt="Hunt Analyser" class="icon-img" />
         <span>Hunt Analyser</span>
       </router-link>
+      <router-link to="/huntedlist" class="sidebar-link">
+        <img src="../assets/images/general/quest.gif" alt="Hunted List" class="icon-img" />
+        <span>Hunted List</span>
+      </router-link>
     </nav>
   </aside>
 </template>
@@ -53,10 +57,12 @@ export default {
   display: flex;
   flex-direction: column;
   gap: 0.25rem;
-  padding: 1.5rem 1rem; /* Centralizando padding aqui */
+  padding: 1.5rem 1rem;
+  /* Centralizando padding aqui */
   height: 100%;
   overflow-y: auto;
-  justify-content: flex-start; /* Alinhamento dos itens */
+  justify-content: flex-start;
+  /* Alinhamento dos itens */
 }
 
 /* Custom Scrollbar */
@@ -107,13 +113,12 @@ export default {
 }
 
 .sidebar-link:hover {
-  background: linear-gradient(135deg, 
-    rgba(245, 158, 11, 0.1), 
-    rgba(245, 158, 11, 0.05)
-  );
+  background: linear-gradient(135deg,
+      rgba(245, 158, 11, 0.1),
+      rgba(245, 158, 11, 0.05));
   color: var(--accent-gold);
   transform: translateX(4px);
-  box-shadow: 
+  box-shadow:
     0 4px 12px rgba(245, 158, 11, 0.2),
     inset 0 1px 0 rgba(255, 255, 255, 0.1);
 }
@@ -124,14 +129,13 @@ export default {
 
 .sidebar-link.active,
 .sidebar-link.router-link-active {
-  background: linear-gradient(135deg, 
-    rgba(245, 158, 11, 0.15), 
-    rgba(245, 158, 11, 0.08)
-  );
+  background: linear-gradient(135deg,
+      rgba(245, 158, 11, 0.15),
+      rgba(245, 158, 11, 0.08));
   color: var(--accent-gold);
   font-weight: 600;
   transform: translateX(4px);
-  box-shadow: 
+  box-shadow:
     0 4px 12px rgba(245, 158, 11, 0.3),
     inset 0 1px 0 rgba(255, 255, 255, 0.2);
 }
@@ -168,16 +172,16 @@ export default {
   .sidebar {
     width: 200px;
   }
-  
+
   .nav-link {
     padding: 0.5rem 1rem;
     gap: 0.75rem;
   }
-  
+
   .nav-text {
     font-size: 0.9rem;
   }
-  
+
   .nav-icon {
     width: 22px;
     height: 22px;
@@ -192,11 +196,11 @@ export default {
     z-index: 1000;
     width: 250px;
   }
-  
+
   .sidebar.mobile-open {
     left: 0;
   }
-  
+
   /* Overlay para fechar sidebar em mobile */
   .sidebar::before {
     content: '';
@@ -210,7 +214,7 @@ export default {
     opacity: 0;
     transition: opacity 0.3s ease;
   }
-  
+
   .sidebar.mobile-open::before {
     right: -250px;
     opacity: 1;
@@ -222,11 +226,11 @@ export default {
     width: 100%;
     left: -100%;
   }
-  
+
   .sidebar.mobile-open {
     left: 0;
   }
-  
+
   .sidebar.mobile-open::before {
     right: 0;
   }
@@ -238,6 +242,7 @@ export default {
     opacity: 0;
     transform: translateX(-20px);
   }
+
   to {
     opacity: 1;
     transform: translateX(0);
@@ -248,7 +253,8 @@ export default {
   animation: slideInFloat 0.5s ease-out;
 }
 
-.sidebar-link.disabled, .topic-card.disabled {
+.sidebar-link.disabled,
+.topic-card.disabled {
   pointer-events: none;
   opacity: 0.6;
   cursor: not-allowed;
@@ -256,7 +262,8 @@ export default {
 }
 
 /* Tooltip */
-.sidebar-link.disabled:hover::after, .topic-card.disabled:hover::after {
+.sidebar-link.disabled:hover::after,
+.topic-card.disabled:hover::after {
   content: 'Em Desenvolvimento';
   position: absolute;
   left: 50%;
@@ -270,7 +277,7 @@ export default {
   white-space: nowrap;
   margin-top: 0.4em;
   z-index: 10;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.18);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.18);
 }
 
 .dev-label {
