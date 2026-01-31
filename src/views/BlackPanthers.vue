@@ -5,12 +5,17 @@
         <h2>Membros Online</h2>
         <div v-if="loading" class="loading-msg">Carregando membros online...</div>
         <div v-else>
-          <ul v-if="onlineMembers.length">
-            <li v-for="member in onlineMembers" :key="member.name">
-              <span class="status-dot online"></span>
-              <strong>{{ member.name }}</strong> <span class="level">(Level {{ member.level }})</span> <span class="vocation">- {{ member.vocation }}</span>
-            </li>
-          </ul>
+          <template v-if="onlineByVocation.length">
+            <div v-for="group in onlineByVocation" :key="group.vocation" class="vocation-group">
+              <h3 class="vocation-title">{{ group.vocation }}</h3>
+              <ul>
+                <li v-for="member in group.members" :key="member.name">
+                  <span class="status-dot online"></span>
+                  <strong>{{ member.name }}</strong> <span class="level">(Level {{ member.level }})</span>
+                </li>
+              </ul>
+            </div>
+          </template>
           <div v-else class="no-online">Nenhum membro online no momento.</div>
         </div>
       </div>
@@ -46,16 +51,31 @@ export default {
       deathsLoading: true,
     }
   },
+  computed: {
+    onlineByVocation() {
+      // Agrupa membros online por vocação
+      const groups = {}
+      for (const m of this.onlineMembers) {
+        if (!groups[m.vocation]) groups[m.vocation] = []
+        groups[m.vocation].push(m)
+      }
+      // Retorna array de objetos { vocation, members }
+      return Object.entries(groups).map(([vocation, members]) => ({ vocation, members }))
+    }
+  },
   mounted() {
     this.fetchOnlineMembers()
     this.fetchDeaths()
-    this._interval = setInterval(() => {
+    this._intervalOnline = setInterval(() => {
       this.fetchOnlineMembers()
+    }, 120000) // 2 minutos
+    this._intervalDeaths = setInterval(() => {
       this.fetchDeaths()
-    }, 60000)
+    }, 600000) // 10 minutos
   },
   beforeUnmount() {
-    clearInterval(this._interval)
+    clearInterval(this._intervalOnline)
+    clearInterval(this._intervalDeaths)
   },
   methods: {
     async fetchOnlineMembers() {
@@ -199,6 +219,15 @@ export default {
 .no-deaths {
   color: #888;
   margin-top: 1.2rem;
+}
+.vocation-group {
+  margin-bottom: 1.5rem;
+}
+.vocation-title {
+  color: #60a5fa;
+  font-size: 1.13rem;
+  margin-bottom: 0.5rem;
+  margin-top: 0.7rem;
 }
 @media (max-width: 900px) {
   .split-container {
