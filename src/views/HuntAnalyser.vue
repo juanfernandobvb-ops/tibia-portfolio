@@ -18,9 +18,111 @@
     </div>
     <h1>Hunt Analyser</h1>
 
-    <CenterModal v-if="showSessionModal" @close="showSessionModal = false">
+    <CenterModal v-if="showSessionModal" @close="showSessionModal = false" :style="{ zIndex: showDayModal ? 10001 : 9999 }">
       <h2 style="margin-bottom: 1.2rem;">Input Completo</h2>
       <pre style="max-height: 60vh; overflow:auto;">{{ sessionModalContent }}</pre>
+    </CenterModal>
+
+    <!-- Modal de Sessões do Dia -->
+    <CenterModal v-if="showDayModal" @close="closeDayModal">
+      <div class="day-modal-content">
+        <h2 style="margin-bottom: 1.2rem;">Sessões de {{ formatDateBR(selectedDayData?.day) }}</h2>
+        
+        <!-- Sessões Solo -->
+        <div v-if="selectedDayData?.type === 'solo'" class="day-sessions">
+          <div v-for="session in selectedDayData.sessions" :key="session.id" class="modal-session-card">
+            <div class="modal-session-stats">
+              <div class="modal-stats-info">
+                <div class="modal-stat">
+                  <span class="stat-label">Exp:</span>
+                  <span class="stat-value">{{ session.xpGain?.toLocaleString() }}</span>
+                </div>
+                <div class="modal-stat">
+                  <span class="stat-label">Balance:</span>
+                  <span class="stat-value">{{ session.balance?.toLocaleString() }}</span>
+                </div>
+                <div class="modal-stat">
+                  <span class="stat-label">Duração:</span>
+                  <span class="stat-value">{{ session.duration }}</span>
+                </div>
+                <div class="modal-stat">
+                  <span class="stat-label">Horário:</span>
+                  <span class="stat-value">{{ session.startTime }} - {{ session.endTime }}</span>
+                </div>
+              </div>
+              <div class="modal-session-actions">
+                <button class="delete-btn" @click="deleteSession(session)">Excluir</button>
+                <button class="expand-btn" @click="openSessionModal(session.rawInput)">
+                  Ver Detalhes
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Sessões Party -->
+        <div v-if="selectedDayData?.type === 'party'" class="day-sessions">
+          <div v-for="session in selectedDayData.sessions" :key="session.id" class="modal-session-card party">
+            <div class="modal-session-header">
+              <span><strong>{{ session.startTime }}</strong> - <strong>{{ session.endTime }}</strong></span>
+              <span><strong>Duração:</strong> {{ session.duration }}</span>
+            </div>
+            <div class="modal-session-stats">
+              <div class="modal-stats-grid">
+                <div class="modal-stat">
+                  <span class="stat-label">Loot:</span>
+                  <span class="stat-value">{{ session.loot?.toLocaleString() }}</span>
+                </div>
+                <div class="modal-stat">
+                  <span class="stat-label">Supplies:</span>
+                  <span class="stat-value">{{ session.supplies?.toLocaleString() }}</span>
+                </div>
+                <div class="modal-stat">
+                  <span class="stat-label">Balance:</span>
+                  <span class="stat-value">{{ session.balance?.toLocaleString() }}</span>
+                </div>
+                <div class="modal-stat">
+                  <span class="stat-label">Tipo:</span>
+                  <span class="stat-value">{{ session.lootType }}</span>
+                </div>
+              </div>
+              <div class="modal-session-actions">
+                <button class="delete-btn" @click="deleteSession(session)">Excluir</button>
+                <button class="expand-btn" @click="openSessionModal(session.rawInput)">
+                  Ver Detalhes
+                </button>
+              </div>
+            </div>
+            
+            <!-- Players Table -->
+            <div class="party-players-modal" v-if="session.players?.length">
+              <h4>Participantes</h4>
+              <table class="players-table">
+                <thead>
+                  <tr>
+                    <th>Personagem</th>
+                    <th>Loot</th>
+                    <th>Supplies</th>
+                    <th>Balance</th>
+                    <th>Damage</th>
+                    <th>Healing</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr v-for="player in session.players" :key="player.name">
+                    <td>{{ player.name }}{{ player.isLeader ? ' (L)' : '' }}</td>
+                    <td>{{ player.loot.toLocaleString() }}</td>
+                    <td>{{ player.supplies.toLocaleString() }}</td>
+                    <td>{{ player.balance.toLocaleString() }}</td>
+                    <td>{{ player.damage.toLocaleString() }}</td>
+                    <td>{{ player.healing.toLocaleString() }}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
     </CenterModal>
 
     <!-- Tabs -->
@@ -64,36 +166,29 @@
           </div>
           <div class="sessions-by-day">
             <h2>Sessões de {{ selectedCharacter }}</h2>
-            <div v-for="(sessions, day) in sessionsByDaySolo" :key="day" class="day-group">
-              <h3>{{ day }}</h3>
-              <div class="sessions-list">
-                <div v-for="session in sessions" :key="session.id" class="session-card">
-                  <div class="session-stats">
-                    <div class="session-stats-info">
-                      <div class="stats-label exp-size">
-                        <div class="stats-title">Exp</div>
-                        <div class="stats-info">{{ session.xpGain?.toLocaleString() }}</div>
-                      </div>
-                      <div class="stats-label balance-size">
-                        <div class="stats-title">Balance</div>
-                        <div class="stats-info">{{ session.balance?.toLocaleString() }}</div>
-                      </div>
-                      <div class="stats-label duration-size">
-                        <div class="stats-title">Duração</div>
-                        <div class="stats-info">{{ session.duration }}</div>
-                      </div>
-
-                    </div>
-                    <div class="session-stats-btn">
-                      <button class="delete-btn" @click="deleteSession(session)">Excluir</button>
-                      <button class="expand-btn" @click="openSessionModal(session.rawInput)">
-                        Expandir
-                      </button>
-                    </div>
+            <div class="days-grid">
+              <div 
+                v-for="(sessions, day) in sessionsByDaySolo" 
+                :key="day" 
+                class="day-card"
+                @click="openDayModal(day, 'solo')"
+              >
+                <div class="day-card-header">
+                  <h3>{{ formatDateBR(day) }}</h3>
+                  <span class="session-count">{{ dayTotalsSolo[day]?.count || 0 }} sessões</span>
+                </div>
+                <div class="day-card-stats">
+                  <div class="stat-item">
+                    <span class="stat-label">XP</span>
+                    <span class="stat-value">{{ (dayTotalsSolo[day]?.xp || 0).toLocaleString() }}</span>
                   </div>
-                  <div v-if="expandedSession === session.id" class="expanded-input">
-                    <h4>Input Completo</h4>
-                    <pre>{{ session.rawInput }}</pre>
+                  <div class="stat-item">
+                    <span class="stat-label">Balance</span>
+                    <span class="stat-value">{{ (dayTotalsSolo[day]?.balance || 0).toLocaleString() }}</span>
+                  </div>
+                  <div class="stat-item" v-if="dayTotalsSolo[day]?.duration">
+                    <span class="stat-label">Tempo</span>
+                    <span class="stat-value">{{ formatMinutes(dayTotalsSolo[day].duration) }}</span>
                   </div>
                 </div>
               </div>
@@ -117,54 +212,29 @@
         </div>
         <div class="sessions-by-day">
           <h2>Sessões Party</h2>
-          <div v-for="(sessions, day) in sessionsByDayParty" :key="day" class="day-group">
-            <h3>{{ day }}</h3>
-            <div class="sessions-list">
-              <div v-for="session in sessions" :key="session.id" class="session-card">
-                <div class="session-header">
-                  <span><strong>Início:</strong> {{ session.startTime }}</span>
-                  <span><strong>Fim:</strong> {{ session.endTime }}</span>
-                  <button class="delete-btn" @click="deleteSession(session)">Excluir</button>
-                  <button class="expand-btn" @click="openSessionModal(session.rawInput)">
-                    Expandir
-                  </button>
+          <div class="days-grid">
+            <div 
+              v-for="(sessions, day) in sessionsByDayParty" 
+              :key="day" 
+              class="day-card party-card"
+              @click="openDayModal(day, 'party')"
+            >
+              <div class="day-card-header">
+                <h3>{{ formatDateBR(day) }}</h3>
+                <span class="session-count">{{ dayTotalsParty[day]?.count || 0 }} sessões</span>
+              </div>
+              <div class="day-card-stats">
+                <div class="stat-item">
+                  <span class="stat-label">Loot</span>
+                  <span class="stat-value">{{ (dayTotalsParty[day]?.loot || 0).toLocaleString() }}</span>
                 </div>
-                <div class="session-stats">
-                  <div><strong>Tipo de Loot:</strong> {{ session.lootType }}</div>
-                  <div><strong>Loot Total:</strong> {{ session.loot?.toLocaleString() }}</div>
-                  <div><strong>Supplies Total:</strong> {{ session.supplies?.toLocaleString() }}</div>
-                  <div><strong>Balance Total:</strong> {{ session.balance?.toLocaleString() }}</div>
-                  <div><strong>Duração:</strong> {{ session.duration }}</div>
+                <div class="stat-item">
+                  <span class="stat-label">Balance</span>
+                  <span class="stat-value">{{ (dayTotalsParty[day]?.balance || 0).toLocaleString() }}</span>
                 </div>
-                <div class="party-players-list">
-                  <table>
-                    <thead>
-                      <tr>
-                        <th>Personagem</th>
-                        <th>Líder</th>
-                        <th>Loot</th>
-                        <th>Supplies</th>
-                        <th>Balance</th>
-                        <th>Damage</th>
-                        <th>Healing</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      <tr v-for="player in session.players" :key="player.name">
-                        <td>{{ player.name }}</td>
-                        <td>{{ player.isLeader ? 'Sim' : '' }}</td>
-                        <td>{{ player.loot.toLocaleString() }}</td>
-                        <td>{{ player.supplies.toLocaleString() }}</td>
-                        <td>{{ player.balance.toLocaleString() }}</td>
-                        <td>{{ player.damage.toLocaleString() }}</td>
-                        <td>{{ player.healing.toLocaleString() }}</td>
-                      </tr>
-                    </tbody>
-                  </table>
-                </div>
-                <div v-if="expandedSession === session.id" class="expanded-input">
-                  <h4>Input Completo</h4>
-                  <pre>{{ session.rawInput }}</pre>
+                <div class="stat-item">
+                  <span class="stat-label">Supplies</span>
+                  <span class="stat-value">{{ (dayTotalsParty[day]?.supplies || 0).toLocaleString() }}</span>
                 </div>
               </div>
             </div>
@@ -299,6 +369,9 @@ export default {
       showSoloModal: false,
       showSessionModal: false,
       sessionModalContent: '',
+      expandedDays: {}, // Controla quais dias estão expandidos
+      showDayModal: false, // Modal para sessões de um dia específico
+      selectedDayData: null, // Dados do dia selecionado para o modal
     };
   },
   computed: {
@@ -339,6 +412,40 @@ export default {
         }
       }
       return total;
+    },
+    dayTotalsSolo() {
+      // Calcula totais por dia para sessões solo
+      const totals = {};
+      Object.keys(this.sessionsByDaySolo).forEach(day => {
+        const sessions = this.sessionsByDaySolo[day];
+        totals[day] = {
+          count: sessions.length,
+          xp: sessions.reduce((sum, s) => sum + (s.xpGain || 0), 0),
+          balance: sessions.reduce((sum, s) => sum + (s.balance || 0), 0),
+          duration: sessions.reduce((sum, s) => {
+            const match = s.duration?.match(/(\d+):(\d+):(\d+)h/);
+            if (match) {
+              return sum + (parseInt(match[1]) * 60 + parseInt(match[2]));
+            }
+            return sum;
+          }, 0)
+        };
+      });
+      return totals;
+    },
+    dayTotalsParty() {
+      // Calcula totais por dia para sessões party
+      const totals = {};
+      Object.keys(this.sessionsByDayParty).forEach(day => {
+        const sessions = this.sessionsByDayParty[day];
+        totals[day] = {
+          count: sessions.length,
+          loot: sessions.reduce((sum, s) => sum + (s.loot || 0), 0),
+          balance: sessions.reduce((sum, s) => sum + (s.balance || 0), 0),
+          supplies: sessions.reduce((sum, s) => sum + (s.supplies || 0), 0)
+        };
+      });
+      return totals;
     }
   },
   created() {
@@ -455,6 +562,41 @@ export default {
     openSessionModal(content) {
       this.sessionModalContent = content;
       this.showSessionModal = true;
+    },
+    toggleDay(day) {
+      this.expandedDays[day] = !this.expandedDays[day];
+    },
+    isDayExpanded(day) {
+      return this.expandedDays[day] !== false; // Expandido por padrão
+    },
+    formatMinutes(minutes) {
+      const hours = Math.floor(minutes / 60);
+      const mins = minutes % 60;
+      return `${hours}h${mins.toString().padStart(2, '0')}m`;
+    },
+    formatDateBR(dateString) {
+      if (!dateString) return '';
+      const date = new Date(dateString + 'T00:00:00'); // Evita problemas de timezone
+      const weekdays = ['Domingo', 'Segunda-feira', 'Terça-feira', 'Quarta-feira', 'Quinta-feira', 'Sexta-feira', 'Sábado'];
+      const dayName = weekdays[date.getDay()];
+      const day = date.getDate().toString().padStart(2, '0');
+      const month = (date.getMonth() + 1).toString().padStart(2, '0');
+      return `${dayName} ${day}/${month}`;
+    },
+    openDayModal(day, type) {
+      const sessions = type === 'solo' ? this.sessionsByDaySolo[day] : this.sessionsByDayParty[day];
+      const totals = type === 'solo' ? this.dayTotalsSolo[day] : this.dayTotalsParty[day];
+      this.selectedDayData = {
+        day,
+        type,
+        sessions,
+        totals
+      };
+      this.showDayModal = true;
+    },
+    closeDayModal() {
+      this.showDayModal = false;
+      this.selectedDayData = null;
     }
   }
 }
@@ -633,12 +775,201 @@ export default {
   }
 }
 
-.day-group {
-  margin-bottom: 1.5rem;
+.days-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1.5rem;
+  width: 100%;
+}
+
+.day-card {
+  background: linear-gradient(135deg, var(--bg-secondary) 0%, #2a2a35 100%);
+  border-radius: 12px;
+  padding: 1.5rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border: 2px solid transparent;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.day-card:hover {
+  transform: translateY(-2px);
+  border-color: var(--accent-gold);
+  box-shadow: 0 8px 24px rgba(251, 191, 36, 0.15);
+}
+
+.day-card.party-card {
+  background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
+}
+
+.day-card.party-card:hover {
+  border-color: #60a5fa;
+  box-shadow: 0 8px 24px rgba(59, 130, 246, 0.15);
+}
+
+.day-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.day-card-header h3 {
+  margin: 0;
+  color: var(--accent-gold);
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.party-card .day-card-header h3 {
+  color: #bfdbfe;
+}
+
+.session-count {
+  background: rgba(251, 191, 36, 0.2);
+  color: var(--accent-gold);
+  padding: 0.25rem 0.75rem;
+  border-radius: 12px;
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.party-card .session-count {
+  background: rgba(191, 219, 254, 0.2);
+  color: #bfdbfe;
+}
+
+.day-card-stats {
   display: flex;
   flex-direction: column;
+  gap: 0.75rem;
+}
+
+.stat-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.stat-label {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.stat-value {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+/* Modal de Dia */
+.day-modal-content {
+  max-height: 70vh;
+  overflow-y: auto;
+  width: 100%;
+  max-width: 900px;
+}
+
+.day-sessions {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.modal-session-card {
+  background: var(--bg-secondary);
+  border-radius: 8px;
+  padding: 1.5rem;
+  border: 1px solid var(--border-accent);
+}
+
+.modal-session-card.party {
+  background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 100%);
+  border-color: #3b82f6;
+}
+
+.modal-session-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+  font-size: 0.95rem;
+}
+
+.modal-session-stats {
+  display: flex;
+  justify-content: space-between;
   align-items: flex-start;
-  justify-content: flex-start;
+  gap: 2rem;
+}
+
+.modal-stats-info {
+  display: flex;
+  gap: 2rem;
+  flex-wrap: wrap;
+}
+
+.modal-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+  flex: 1;
+}
+
+.modal-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.modal-stat .stat-label {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+}
+
+.modal-stat .stat-value {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.modal-session-actions {
+  display: flex;
+  gap: 0.75rem;
+  flex-shrink: 0;
+}
+
+.party-players-modal {
+  margin-top: 1.5rem;
+}
+
+.party-players-modal h4 {
+  margin: 0 0 1rem 0;
+  color: var(--accent-gold);
+}
+
+.players-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+
+.players-table th,
+.players-table td {
+  padding: 0.5rem;
+  text-align: left;
+  border-bottom: 1px solid var(--border-accent);
+}
+
+.players-table th {
+  background: rgba(0, 0, 0, 0.3);
+  color: var(--text-secondary);
+  font-weight: 600;
+}
+
+.players-table td {
+  color: var(--text-primary);
 }
 
 .sessions-list {
@@ -647,80 +978,6 @@ export default {
   gap: 1rem;
   justify-content: flex-start;
   align-items: flex-start;
-}
-
-.session-card {
-  background: var(--bg-secondary);
-  border-radius: 10px;
-  /* padding: 1rem; */
-  width: 100%;
-  height: 3rem;
-  box-shadow: var(--shadow-sm);
-  border: 2px solid transparent;
-  transition: border 0.2s;
-}
-
-.session-card.selected {
-  border: 2px solid var(--accent-gold);
-}
-
-.session-header {
-  display: flex;
-  justify-content: flex-start;
-  align-items: center;
-  margin-bottom: 0.5rem;
-  gap: 3.5rem;
-}
-
-.session-stats {
-  font-size: 1rem;
-  display: flex;
-  justify-content: flex-start;
-  align-items: center;
-  padding: 0 2rem;
-  width: 80vw !important;
-  height: 100%;
-  gap: 3.5rem;
-
-  .session-stats-info {
-    display: flex;
-    gap: 1.5rem;
-    width: 50%;
-
-    .exp-size {
-      width: 33%;
-    }
-    .balance-size {
-      width: 33%;
-    }
-    .duration-size {
-      width: 33%;
-    }
-
-    .stats-label {
-      display: flex;
-      gap: 0.5rem;
-
-      .stats-title {
-        font-weight: 600;
-        color: #f59e42;
-      }
-
-      .stats-info {
-        width: 80%;
-        border: 1px solid #333;
-        border-radius: 4px;
-        padding: 0.1rem 0.5rem;
-      }
-    }
-  }
-
-  .session-stats-btn {
-    display: flex;
-    gap: 1.5rem;
-    justify-content: flex-end;
-    width: 50%;
-  }
 }
 
 .compare-section {
