@@ -132,7 +132,7 @@
     </div>
 
     <!-- Hunt Solo Tab -->
-    <div v-if="activeTab === 'solo'">
+    <div v-if="activeTab === 'solo'" class="tab-content">
       <div v-if="!user" class="login-required-msg">
         <p>Faça login para acessar o Hunt Analyser.</p>
       </div>
@@ -199,7 +199,7 @@
     </div>
 
     <!-- Hunt Party Tab -->
-    <div v-if="activeTab === 'party'">
+    <div v-if="activeTab === 'party'" class="tab-content">
       <div v-if="!user" class="login-required-msg">
         <p>Faça login para acessar o Hunt Analyser.</p>
       </div>
@@ -652,6 +652,11 @@ export default {
   align-items: flex-start;
 }
 
+.tab-content {
+  width: 100%;
+  box-sizing: border-box;
+}
+
 .tab-btn {
   background: var(--bg-secondary);
   color: var(--text-primary);
@@ -706,12 +711,29 @@ export default {
   padding-top: 110px;
   /* espaço para o header fixo */
   padding: 2rem;
-  /* max-width: 1100px; */
-  margin: 0 auto;
+  width: 100%;
+  box-sizing: border-box;
   display: flex;
   flex-direction: column;
   align-items: flex-start;
   justify-content: flex-start;
+  transition: left 0.2s, width 0.2s, padding-left 0.2s;
+}
+
+@media (max-width: 1024px) {
+  .huntanalyser-page {
+    left: 215px;
+    width: calc(100vw - 215px);
+    padding-left: 1rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .huntanalyser-page {
+    left: 0;
+    width: 100vw;
+    padding-left: 1rem;
+  }
 }
 
 .summary-box {
