@@ -7,12 +7,10 @@
         <span><strong>Total XP:</strong> {{ totalXp.toLocaleString() }}</span>
         <span><strong>Total Balance:</strong> {{ totalBalance.toLocaleString() }}</span>
         <span v-if="activeTab === 'solo' && sessionsByDaySolo && Object.keys(sessionsByDaySolo).length">
-          <strong>Total Sessões Solo:</strong> {{Object.values(sessionsByDaySolo).reduce((acc, arr) => acc +
-            arr.length, 0)}}
+          <strong>Total Dias Solo:</strong> {{ Object.keys(sessionsByDaySolo).length }}
         </span>
         <span v-if="activeTab === 'party' && sessionsByDayParty && Object.keys(sessionsByDayParty).length">
-          <strong>Total Sessões Party:</strong> {{Object.values(sessionsByDayParty).reduce((acc, arr) => acc +
-            arr.length, 0)}}
+          <strong>Total Dias Party:</strong> {{ Object.keys(sessionsByDayParty).length }}
         </span>
       </div>
     </div>
@@ -129,6 +127,17 @@
     <div v-if="user" class="tabs-container">
       <button :class="['tab-btn', { active: activeTab === 'solo' }]" @click="activeTab = 'solo'">Hunt Solo</button>
       <button :class="['tab-btn', { active: activeTab === 'party' }]" @click="activeTab = 'party'">Hunt Party</button>
+    </div>
+
+    <!-- Filtro por Mês -->
+    <div v-if="user && availableMonths.length > 0" class="month-filter-container">
+      <label>Filtrar por Mês:</label>
+      <select v-model="selectedMonth" class="month-filter-select">
+        <option value="">Todos os Meses</option>
+        <option v-for="month in availableMonths" :key="month.value" :value="month.value">
+          {{ month.label }}
+        </option>
+      </select>
     </div>
 
     <!-- Hunt Solo Tab -->
@@ -360,6 +369,7 @@ export default {
       characters: [],
       selectedCharacter: '',
       newCharacterName: '',
+      selectedMonth: '',
       sessionInput: '',
       sessionInputParty: '',
       inputError: '',
@@ -375,10 +385,42 @@ export default {
     };
   },
   computed: {
+    availableMonths() {
+      const months = new Set()
+      const monthNames = [
+        'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
+        'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'
+      ]
+      
+      this.allSessions.forEach(session => {
+        if (session.date) {
+          const date = new Date(session.date + 'T00:00:00')
+          const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`
+          const monthLabel = `${monthNames[date.getMonth()]} ${date.getFullYear()}`
+          months.add(JSON.stringify({ value: monthKey, label: monthLabel }))
+        }
+      })
+      
+      return Array.from(months)
+        .map(m => JSON.parse(m))
+        .sort((a, b) => a.value.localeCompare(b.value))
+    },
     sessionsByDaySolo() {
       // Agrupa sessões solo por dia para o personagem selecionado
       const grouped = {}
-      this.allSessions.filter(s => s.type === 'solo' && s.characterName === this.selectedCharacter).forEach(s => {
+      let filteredSessions = this.allSessions.filter(s => s.type === 'solo' && s.characterName === this.selectedCharacter)
+      
+      // Filtrar por mês se selecionado
+      if (this.selectedMonth) {
+        filteredSessions = filteredSessions.filter(s => {
+          if (!s.date) return false
+          const date = new Date(s.date + 'T00:00:00')
+          const sessionMonth = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`
+          return sessionMonth === this.selectedMonth
+        })
+      }
+      
+      filteredSessions.forEach(s => {
         if (!grouped[s.date]) grouped[s.date] = []
         grouped[s.date].push(s)
       })
@@ -387,27 +429,51 @@ export default {
     sessionsByDayParty() {
       // Agrupa sessões party por dia
       const grouped = {}
-      this.allSessions.filter(s => s.type === 'party').forEach(s => {
+      let filteredSessions = this.allSessions.filter(s => s.type === 'party')
+      
+      // Filtrar por mês se selecionado
+      if (this.selectedMonth) {
+        filteredSessions = filteredSessions.filter(s => {
+          if (!s.date) return false
+          const date = new Date(s.date + 'T00:00:00')
+          const sessionMonth = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`
+          return sessionMonth === this.selectedMonth
+        })
+      }
+      
+      filteredSessions.forEach(s => {
         if (!grouped[s.date]) grouped[s.date] = []
         grouped[s.date].push(s)
       })
       return grouped
     },
     totalXp() {
-      // Soma XP apenas das sessões do personagem selecionado
+      // Soma XP apenas das sessões do personagem selecionado, filtrado por mês se aplicável
       let total = 0;
       for (const s of this.allSessions) {
         if (s.type === 'solo' && s.characterName === this.selectedCharacter && typeof s.xpGain === 'number') {
+          // Filtrar por mês se selecionado
+          if (this.selectedMonth && s.date) {
+            const date = new Date(s.date + 'T00:00:00')
+            const sessionMonth = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`
+            if (sessionMonth !== this.selectedMonth) continue
+          }
           total += s.xpGain;
         }
       }
       return total;
     },
     totalBalance() {
-      // Soma Balance apenas das sessões do personagem selecionado
+      // Soma Balance apenas das sessões do personagem selecionado, filtrado por mês se aplicável
       let total = 0;
       for (const s of this.allSessions) {
         if (s.type === 'solo' && s.characterName === this.selectedCharacter && typeof s.balance === 'number') {
+          // Filtrar por mês se selecionado
+          if (this.selectedMonth && s.date) {
+            const date = new Date(s.date + 'T00:00:00')
+            const sessionMonth = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`
+            if (sessionMonth !== this.selectedMonth) continue
+          }
           total += s.balance;
         }
       }
@@ -650,6 +716,40 @@ export default {
   margin-bottom: 2rem;
   justify-content: flex-start;
   align-items: flex-start;
+}
+
+.month-filter-container {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 2rem;
+  padding: 1rem;
+  background: var(--bg-secondary);
+  border-radius: 8px;
+  border: 1px solid var(--border-accent);
+}
+
+.month-filter-container label {
+  font-weight: 600;
+  color: var(--text-primary);
+  font-size: 1rem;
+}
+
+.month-filter-select {
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  border: 1px solid var(--border-accent);
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  font-size: 1rem;
+  min-width: 200px;
+  cursor: pointer;
+}
+
+.month-filter-select:focus {
+  outline: none;
+  border-color: var(--accent-gold);
+  box-shadow: 0 0 0 2px rgba(251, 191, 36, 0.2);
 }
 
 .tab-content {
