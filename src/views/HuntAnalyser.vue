@@ -21,6 +21,30 @@
       <pre style="max-height: 60vh; overflow:auto;">{{ sessionModalContent }}</pre>
     </CenterModal>
 
+    <!-- Modal de Itens Entregáveis -->
+    <CenterModal v-if="showItemsModal" @close="closeItemsModal">
+      <div class="items-modal-content">
+        <h2 style="margin-bottom: 1.5rem; color: var(--accent-gold);">Itens Entregáveis Encontrados</h2>
+        
+        <div v-if="foundItems.length === 0" class="no-items-found">
+          <p>Nenhum item entregável foi encontrado nas sessões analisadas.</p>
+        </div>
+        
+        <div v-else>
+          <div class="items-summary">
+            <p><strong>{{ foundItems.length }}</strong> itens entregáveis encontrados em <strong>{{ analyzedSessions }}</strong> sessões</p>
+          </div>
+          
+          <div class="found-items-grid">
+            <div v-for="item in foundItems" :key="item.name" class="found-item-simple">
+              <div class="item-name">{{ item.name }}</div>
+              <div class="item-quantity">{{ item.totalQuantity.toLocaleString() }}x</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </CenterModal>
+    
     <!-- Modal de Sessões do Dia -->
     <CenterModal v-if="showDayModal" @close="closeDayModal">
       <div class="day-modal-content">
@@ -127,6 +151,7 @@
     <div v-if="user" class="tabs-container">
       <button :class="['tab-btn', { active: activeTab === 'solo' }]" @click="activeTab = 'solo'">Hunt Solo</button>
       <button :class="['tab-btn', { active: activeTab === 'party' }]" @click="activeTab = 'party'">Hunt Party</button>
+      <button class="search-items-btn" @click="searchDeliverableItems">🔍 Buscar Entregáveis</button>
     </div>
 
     <!-- Filtro por Mês -->
@@ -259,6 +284,7 @@ import { auth, googleProvider, db } from '../services/firebase.js'
 import { signInWithPopup, signOut, onAuthStateChanged } from 'firebase/auth'
 import { collection, addDoc, getDocs, deleteDoc, doc, query, where, orderBy, Timestamp } from 'firebase/firestore'
 import CenterModal from '../components/CenterModal.vue'
+import itemsData from '../data/items.json'
 
 function parseSession(input) {
   // Solo parser (mantido para sessões solo)
@@ -382,6 +408,9 @@ export default {
       expandedDays: {}, // Controla quais dias estão expandidos
       showDayModal: false, // Modal para sessões de um dia específico
       selectedDayData: null, // Dados do dia selecionado para o modal
+      showItemsModal: false, // Modal de itens entregáveis
+      foundItems: [], // Lista de itens entregáveis encontrados
+      analyzedSessions: 0, // Número de sessões analisadas
     };
   },
   computed: {
@@ -663,6 +692,63 @@ export default {
     closeDayModal() {
       this.showDayModal = false;
       this.selectedDayData = null;
+    },
+    closeItemsModal() {
+      this.showItemsModal = false;
+      this.foundItems = [];
+      this.analyzedSessions = 0;
+    },
+    searchDeliverableItems() {
+      // Lista de itens do JSON
+      const targetItems = itemsData.items.map(item => item.item.toLowerCase());
+      
+      // Objeto para armazenar itens encontrados
+      const itemsFound = {};
+      let sessionsAnalyzed = 0;
+      
+      // Analisar todas as sessões
+      this.allSessions.forEach(session => {
+        if (!session.rawInput) return;
+        
+        // Extrair seção "Looted Items:"
+        const lootedItemsMatch = session.rawInput.match(/Looted Items:(.*?)(?=\n\n|\n[A-Z]|$)/s);
+        if (!lootedItemsMatch) return;
+        
+        sessionsAnalyzed++;
+        
+        const lootedItemsSection = lootedItemsMatch[1];
+        
+        // Extrair itens individuais (formato: "123x item name")
+        const itemMatches = lootedItemsSection.match(/^\s*(\d+)x (.+)$/gm);
+        if (!itemMatches) return;
+        
+        itemMatches.forEach(itemMatch => {
+          const match = itemMatch.match(/^\s*(\d+)x (.+)$/);
+          if (!match) return;
+          
+          const quantity = parseInt(match[1]);
+          const itemName = match[2].trim().replace(/^an? /, '').toLowerCase(); // Remove "a " ou "an "
+          
+          // Verificar se o item está na lista de entregáveis
+          if (targetItems.includes(itemName)) {
+            if (!itemsFound[itemName]) {
+              itemsFound[itemName] = {
+                name: match[2].trim(), // Nome original com artigo
+                totalQuantity: 0
+              };
+            }
+            
+            itemsFound[itemName].totalQuantity += quantity;
+          }
+        });
+      });
+      
+      // Converter objeto para array e ordenar por quantidade total (descendente)
+      this.foundItems = Object.values(itemsFound)
+        .sort((a, b) => b.totalQuantity - a.totalQuantity);
+      
+      this.analyzedSessions = sessionsAnalyzed;
+      this.showItemsModal = true;
     }
   }
 }
@@ -772,6 +858,28 @@ export default {
 .tab-btn.active {
   background: var(--accent-gold);
   color: #fff;
+}
+
+.search-items-btn {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 0.8rem 1.5rem;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.search-items-btn:hover {
+  background: linear-gradient(135deg, #059669 0%, #047857 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
 }
 
 .character-select-box {
@@ -1251,5 +1359,76 @@ export default {
   background: linear-gradient(90deg, #f59e42 0%, #fbbf24 100%);
   color: #fff;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.18);
+}
+
+/* Modal de Itens Entregáveis */
+.items-modal-content {
+  max-height: 80vh;
+  overflow-y: auto;
+  width: 100%;
+  max-width: 1000px;
+  padding: 0.5rem;
+}
+
+.no-items-found {
+  text-align: center;
+  padding: 3rem 2rem;
+  color: var(--text-secondary);
+  font-size: 1.1rem;
+}
+
+.items-summary {
+  background: var(--bg-secondary);
+  border-radius: 8px;
+  padding: 1rem 1.5rem;
+  margin-bottom: 1.5rem;
+  border-left: 4px solid var(--accent-gold);
+}
+
+.items-summary p {
+  margin: 0;
+  font-size: 1.05rem;
+  color: var(--text-primary);
+}
+
+.found-items-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1rem;
+}
+
+.found-item-simple {
+  background: linear-gradient(135deg, var(--bg-secondary) 0%, #2a2a35 100%);
+  border-radius: 8px;
+  padding: 1rem 1.25rem;
+  border: 1px solid var(--border-accent);
+  transition: all 0.2s ease;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.found-item-simple:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  border-color: var(--accent-gold);
+}
+
+.item-name {
+  color: var(--text-primary);
+  font-weight: 500;
+  font-size: 1rem;
+  flex: 1;
+}
+
+.item-quantity {
+  background: rgba(251, 191, 36, 0.15);
+  color: var(--accent-gold);
+  padding: 0.4rem 0.8rem;
+  border-radius: 6px;
+  font-weight: 600;
+  font-size: 0.95rem;
+  flex-shrink: 0;
+  margin-left: 1rem;
 }
 </style>
