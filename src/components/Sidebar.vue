@@ -17,6 +17,10 @@
         <img src="../assets/images/general/ferumbras_final.gif" alt="Finais GT/FR" class="icon-img" />
         <span>Finais GT/FR</span>
       </router-link>
+      <router-link to="/bosses" class="sidebar-link">
+        <img src="../assets/images/general/ferumbras_final.gif" alt="Meus Bosses" class="icon-img" />
+        <span>Meus Bosses</span>
+      </router-link>
       <div class="sidebar-link disabled">
         <img src="../assets/images/general/quest.gif" alt="Delivery Task" class="icon-img" />
         <span>Delivery Task</span>
