@@ -1,35 +1,48 @@
 <template>
   <div class="hunted-list-page">
-    <h1>Hunted List</h1>
-    <div class="add-player-box">
-      <input v-model="newNick" @keyup.enter="addPlayer" placeholder="Adicionar nick do jogador..." />
-      <button @click="addPlayer">Adicionar</button>
-    </div>
-    <div class="lists-container">
-      <div class="hunted-list">
-        <h2>Todos os Hunteds</h2>
-        <ul>
-          <li v-for="player in players" :key="player.name">
-            <span>{{ player.name }}</span> |
-            <span>Level: {{ player.level }}</span> |
-            <span>Vocação: {{ player.vocation }}</span> |
-            <span :class="{ online: player.online, offline: !player.online }">
-              <span :class="['status-dot', player.online ? 'online' : 'offline']"></span>
-              {{ player.online ? 'Online' : 'Offline' }}
-            </span>
-            <button @click="removePlayer(player.name)">Remover</button>
-          </li>
-        </ul>
+    <h1>Guild Nexus - Inabra</h1>
+    <div class="split-container">
+      <div class="left-half">
+        <h2>Membros Online</h2>
+        <div v-if="loading" class="loading-msg">Carregando membros online...</div>
+        <div v-else>
+          <template v-if="onlineByVocation.length">
+            <div v-for="group in onlineByVocation" :key="group.vocation" class="vocation-group">
+              <h3 class="vocation-title">{{ group.vocation }}</h3>
+              <ul>
+                <li v-for="member in group.members" :key="member.name">
+                  <span class="status-dot online"></span>
+                  <strong>{{ member.name }}</strong> <span class="level">(Level {{ member.level }})</span>
+                  <span class="rank">{{ member.rank }}</span>
+                </li>
+              </ul>
+            </div>
+          </template>
+          <div v-else class="no-online">Nenhum membro online no momento.</div>
+        </div>
       </div>
-      <div class="hunted-online-list">
-        <h2>Hunteds Online</h2>
-        <ul>
-          <li v-for="player in onlinePlayers" :key="player.name">
-            <span>{{ player.name }}</span> |
-            <span>Level: {{ player.level }}</span> |
-            <span>Vocação: {{ player.vocation }}</span>
-          </li>
-        </ul>
+      <div class="right-half">
+        <h2>Todos os Membros</h2>
+        <div class="all-members-section">
+          <div v-if="allMembersLoading">Carregando membros...</div>
+          <template v-else>
+            <div v-if="allMembersByVocation.length">
+              <div v-for="group in allMembersByVocation" :key="group.vocation" class="vocation-group">
+                <h3 class="vocation-title">{{ group.vocation }} ({{ group.members.length }})</h3>
+                <ul>
+                  <li v-for="member in group.members" :key="member.name" :class="{ online: member.status && member.status.toLowerCase() === 'online' }">
+                    <span :class="['status-dot', member.status && member.status.toLowerCase() === 'online' ? 'online' : 'offline']"></span>
+                    <strong>{{ member.name }}</strong> 
+                    <span class="level">(Level {{ member.level }})</span>
+                    <span class="rank">{{ member.rank }}</span>
+                    <span v-if="member.status && member.status.toLowerCase() === 'online'" class="online-status">Online</span>
+                  </li>
+                </ul>
+              </div>
+            </div>
+            <div v-else class="no-members">Nenhum membro encontrado.</div>
+          </template>
+        </div>
       </div>
     </div>
   </div>
@@ -40,111 +53,81 @@ export default {
   name: 'HuntedList',
   data() {
     return {
-      newNick: '',
-      players: [], // { name, level, vocation, online }
-      world: 'Inabra'
+      onlineMembers: [],
+      allMembers: [],
+      loading: true,
+      allMembersLoading: true,
+      world: 'Inabra',
+      guild: 'Nexus'
     }
   },
-  created() {
-    const saved = localStorage.getItem('hunted_players')
-    if (saved) {
-      try {
-        this.players = JSON.parse(saved)
-      } catch {}
-    }
-  },
+
   computed: {
-    onlinePlayers() {
-      return this.players.filter(p => p.online)
+    onlineByVocation() {
+      // Agrupa membros online por vocação
+      const groups = {}
+      for (const m of this.onlineMembers) {
+        if (!groups[m.vocation]) groups[m.vocation] = []
+        groups[m.vocation].push(m)
+      }
+      // Retorna array de objetos { vocation, members }
+      return Object.entries(groups).map(([vocation, members]) => ({ vocation, members }))
+    },
+    allMembersByVocation() {
+      // Agrupa todos os membros por vocação
+      const groups = {}
+      for (const m of this.allMembers) {
+        if (!groups[m.vocation]) groups[m.vocation] = []
+        groups[m.vocation].push(m)
+      }
+      // Retorna array de objetos { vocation, members } ordenado por vocação
+      return Object.entries(groups)
+        .sort(([a], [b]) => a.localeCompare(b))
+        .map(([vocation, members]) => ({ 
+          vocation, 
+          members: members.sort((a, b) => b.level - a.level) // Ordena por level decrescente
+        }))
     }
   },
   mounted() {
-    this.startAutoUpdate()
+    this.fetchOnlineMembers()
+    this.fetchAllMembers()
+    this._intervalOnline = setInterval(() => {
+      this.fetchOnlineMembers()
+    }, 120000) // 2 minutos
+    this._intervalAll = setInterval(() => {
+      this.fetchAllMembers()
+    }, 300000) // 5 minutos
   },
   beforeUnmount() {
-    clearInterval(this._huntedInterval)
+    clearInterval(this._intervalOnline)
+    clearInterval(this._intervalAll)
   },
   methods: {
-    async addPlayer() {
-      const nick = this.newNick.trim()
-      if (!nick || this.players.find(p => p.name.toLowerCase() === nick.toLowerCase())) return
+    async fetchOnlineMembers() {
+      this.loading = true
       try {
-        const response = await fetch(`https://api.tibiadata.com/v4/character/${encodeURIComponent(nick)}`)
-        const data = await response.json()
-        if (data.character && data.character.character) {
-          const char = data.character.character
-          // O campo correto é online_status
-          const isOnline = (char.online_status && char.online_status.toLowerCase() === 'online')
-          this.players.push({
-            name: char.name,
-            level: char.level,
-            vocation: char.vocation,
-            online: isOnline
-          })
-          this.savePlayers()
-          this.newNick = ''
-        }
+        const guildRes = await fetch(`https://api.tibiadata.com/v4/guild/${encodeURIComponent(this.guild)}`)
+        const guildData = await guildRes.json()
+        const members = (guildData.guild && Array.isArray(guildData.guild.members)) ? guildData.guild.members : []
+        this.onlineMembers = members.filter(m => m.status && m.status.toLowerCase() === 'online')
       } catch (e) {
-        // Pode exibir erro se quiser
+        console.error('Erro ao buscar membros online:', e)
+        this.onlineMembers = []
       }
+      this.loading = false
     },
-    removePlayer(name) {
-      this.players = this.players.filter(p => p.name !== name)
-      this.savePlayers()
-    },
-    savePlayers() {
-      localStorage.setItem('hunted_players', JSON.stringify(this.players))
-    },
-    async updatePlayersStatus() {
-      // Busca todos os online do mundo Inabra
-      let onlineNames = []
+    async fetchAllMembers() {
+      this.allMembersLoading = true
       try {
-        const response = await fetch(`https://api.tibiadata.com/v4/world/${this.world}`)
-        const data = await response.json()
-        console.log('Resposta completa da API:', data)
-        if (data.world) {
-          console.log('Chaves de data.world:', Object.keys(data.world))
-          for (const key of Object.keys(data.world)) {
-            if (Array.isArray(data.world[key])) {
-              console.log(`data.world['${key}'] (array):`, data.world[key])
-            }
-          }
-        }
-        console.log('data.world.players_online:', data.world && data.world.players_online)
-        console.log('Array.isArray(data.world.players_online):', data.world && Array.isArray(data.world.players_online))
-        if (data.world && Array.isArray(data.world.online_players)) {
-          onlineNames = data.world.online_players.map(p => p.name)
-        } else {
-          console.warn('Estrutura inesperada:', data)
-        }
+        const guildRes = await fetch(`https://api.tibiadata.com/v4/guild/${encodeURIComponent(this.guild)}`)
+        const guildData = await guildRes.json()
+        this.allMembers = (guildData.guild && Array.isArray(guildData.guild.members)) ? guildData.guild.members : []
       } catch (e) {
-        console.error('Erro ao buscar online:', e)
+        console.error('Erro ao buscar todos os membros:', e)
+        this.allMembers = []
       }
-      // Função para normalizar nomes (case-insensitive, sem espaços, sem acentos)
-      const normalize = str => str
-        .normalize('NFD')
-        .replace(/\p{Diacritic}/gu, '')
-        .replace(/\s+/g, '') // remove todos os espaços
-        .replace(/[^a-zA-Z0-9]/g, '') // remove tudo que não for letra ou número
-        .toLowerCase()
-      // Log para debug
-      console.log('Hunteds salvos:', this.players.map(p => p.name))
-      console.log('Online no mundo:', onlineNames)
-      console.log('Online normalizado:', onlineNames.map(n => normalize(n)))
-      // Atualiza status dos hunteds
-      for (let i = 0; i < this.players.length; i++) {
-        const huntedNorm = normalize(this.players[i].name)
-        const found = onlineNames.find(n => normalize(n) === huntedNorm)
-        this.players[i].online = !!found
-        console.log(`Comparando: '${this.players[i].name}' (${huntedNorm}) => ${found ? 'ONLINE' : 'offline'}`)
-      }
-      this.savePlayers()
-    },
-    startAutoUpdate() {
-      this.updatePlayersStatus()
-      this._huntedInterval = setInterval(() => {
-        this.updatePlayersStatus()
-      }, 60000) // 60 segundos
+      this.allMembersLoading = false
     }
   }
 }
@@ -153,65 +136,59 @@ export default {
 <style scoped>
 .hunted-list-page {
   padding: 2rem;
-  background: #18181b;
   min-height: 100vh;
+  background: #18181b;
 }
-.add-player-box {
-  margin-bottom: 1.5rem;
+.split-container {
   display: flex;
-  gap: 0.5rem;
+  gap: 2rem;
+  min-height: 60vh;
 }
-.add-player-box input {
-  flex: 1;
-  padding: 0.6rem 1rem;
-  border-radius: 8px;
-  border: 1.5px solid #6366f1;
-  background: #23232b;
-  color: #fff;
-  font-size: 1.1rem;
-}
-.add-player-box button {
-  background: linear-gradient(90deg, #fbbf24 0%, #f59e42 100%);
-  color: #18181b;
-  border: none;
-  border-radius: 8px;
-  padding: 0.6rem 1.5rem;
-  font-weight: 700;
-  font-size: 1.1rem;
-  cursor: pointer;
-  transition: background 0.2s, color 0.2s;
-}
-.add-player-box button:hover {
-  background: linear-gradient(90deg, #f59e42 0%, #fbbf24 100%);
-  color: #fff;
-}
-.lists-container {
-  display: flex;
-  gap: 2.5rem;
-  flex-wrap: wrap;
-}
-.hunted-list, .hunted-online-list {
-  flex: 1 1 320px;
+.left-half, .right-half {
+  flex: 1 1 0;
   background: #23232b;
   border-radius: 14px;
-  padding: 1.5rem 1.2rem 1.2rem 1.2rem;
+  padding: 2rem 1.5rem;
   box-shadow: 0 2px 12px rgba(0,0,0,0.13);
-  min-width: 320px;
-  margin-bottom: 2rem;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
 }
-.hunted-list h2, .hunted-online-list h2 {
+.right-half {
+  align-items: flex-start;
+  justify-content: flex-start;
+  text-align: left;
+}
+h1 {
+  color: #fbbf24;
+  font-size: 2.2rem;
+  margin-bottom: 2rem;
+  text-align: center;
+}
+h2 {
   margin-top: 0;
   margin-bottom: 1.2rem;
   font-size: 1.35rem;
   color: #fbbf24;
   letter-spacing: 0.5px;
 }
-.hunted-list ul, .hunted-online-list ul {
+.vocation-title {
+  color: #6366f1;
+  font-size: 1.1rem;
+  margin: 1.2rem 0 0.8rem 0;
+  font-weight: 600;
+}
+.vocation-group:first-child .vocation-title {
+  margin-top: 0;
+}
+.left-half ul, .right-half ul {
   list-style: none;
   padding: 0;
   margin: 0;
+  width: 100%;
 }
-.hunted-list li, .hunted-online-list li {
+.left-half li, .right-half li {
   display: flex;
   align-items: center;
   gap: 0.7rem;
@@ -221,7 +198,7 @@ export default {
   font-size: 1.08rem;
   transition: background 0.18s;
 }
-.hunted-list li:last-child, .hunted-online-list li:last-child {
+.left-half li:last-child, .right-half li:last-child {
   border-bottom: none;
 }
 .status-dot {
@@ -231,38 +208,57 @@ export default {
   border-radius: 50%;
   margin-right: 0.4em;
 }
-.online {
-  color: #22c55e;
-  font-weight: bold;
-}
-.offline {
-  color: #888;
-}
 .status-dot.online {
   background: #22c55e;
 }
 .status-dot.offline {
   background: #888;
 }
-.hunted-list button {
-  margin-left: auto;
-  background: #f87171;
-  color: #fff;
-  border: none;
-  border-radius: 7px;
-  padding: 0.35rem 1.1rem;
-  font-size: 1rem;
+.level {
+  color: #fbbf24;
   font-weight: 600;
-  cursor: pointer;
-  transition: background 0.18s;
 }
-.hunted-list button:hover {
-  background: #dc2626;
+.rank {
+  color: #a3a3a3;
+  font-size: 0.95rem;
+  margin-left: auto;
+}
+.online-status {
+  color: #22c55e;
+  font-weight: bold;
+  font-size: 0.9rem;
+  margin-left: auto;
+}
+.loading-msg, .no-online, .no-members {
+  color: #888;
+  margin-top: 1.2rem;
+}
+.all-members-section {
+  width: 100%;
+  max-height: 70vh;
+  overflow-y: auto;
+}
+.all-members-section::-webkit-scrollbar {
+  width: 6px;
+}
+.all-members-section::-webkit-scrollbar-track {
+  background: #18181b;
+  border-radius: 3px;
+}
+.all-members-section::-webkit-scrollbar-thumb {
+  background: #6366f1;
+  border-radius: 3px;
+}
+.all-members-section::-webkit-scrollbar-thumb:hover {
+  background: #4f46e5;
 }
 @media (max-width: 900px) {
-  .lists-container {
+  .split-container {
     flex-direction: column;
     gap: 1.5rem;
+  }
+  .hunted-list-page {
+    padding: 1rem;
   }
 }
 </style>
