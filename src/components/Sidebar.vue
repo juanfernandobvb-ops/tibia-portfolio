@@ -37,6 +37,10 @@
         <img src="../assets/images/general/black_panther.gif" alt="Black Panthers" class="icon-img" />
         <span>Black Panthers</span>
       </router-link>
+      <router-link to="/tsdesc" class="sidebar-link">
+        <img src="../assets/images/general/tibiapedia.gif" alt="TS Description" class="icon-img" />
+        <span>TS Description</span>
+      </router-link>
     </nav>
   </aside>
 </template>
