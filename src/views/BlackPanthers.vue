@@ -81,11 +81,13 @@ export default {
     async fetchOnlineMembers() {
       this.loading = true
       try {
-        const guildRes = await fetch(`https://api.tibiadata.com/v4/guild/${encodeURIComponent(this.guild)}`)
+        const guildRes = await fetch(`https://api.tibiadata.com/v5/guild/${encodeURIComponent(this.guild)}`)
+        if (!guildRes.ok) throw new Error(`TibiaData returned ${guildRes.status}`)
         const guildData = await guildRes.json()
         const members = (guildData.guild && Array.isArray(guildData.guild.members)) ? guildData.guild.members : []
         this.onlineMembers = members.filter(m => m.status && m.status.toLowerCase() === 'online')
       } catch (e) {
+        console.error('Erro ao buscar membros online:', e)
         this.onlineMembers = []
       }
       this.loading = false
@@ -94,7 +96,8 @@ export default {
       this.deathsLoading = true
       try {
         // Buscar membros da guild
-        const guildRes = await fetch(`https://api.tibiadata.com/v4/guild/${encodeURIComponent(this.guild)}`)
+        const guildRes = await fetch(`https://api.tibiadata.com/v5/guild/${encodeURIComponent(this.guild)}`)
+        if (!guildRes.ok) throw new Error(`TibiaData returned ${guildRes.status}`)
         const guildData = await guildRes.json()
         const members = (guildData.guild && Array.isArray(guildData.guild.members)) ? guildData.guild.members : []
         // Buscar mortes de cada membro (limite para evitar excesso de requisições)
@@ -102,7 +105,8 @@ export default {
         const deathsArr = []
         for (let i = 0; i < Math.min(members.length, maxMembers); i++) {
           const member = members[i]
-          const charRes = await fetch(`https://api.tibiadata.com/v4/character/${encodeURIComponent(member.name)}`)
+          const charRes = await fetch(`https://api.tibiadata.com/v5/character/${encodeURIComponent(member.name)}`)
+          if (!charRes.ok) throw new Error(`TibiaData returned ${charRes.status}`)
           const charData = await charRes.json()
           const deaths = (charData.character && charData.character.deaths) ? charData.character.deaths : []
           deaths.forEach(d => {
@@ -119,6 +123,7 @@ export default {
         deathsArr.sort((a, b) => new Date(b.time) - new Date(a.time))
         this.deaths = deathsArr.slice(0, 30) // Mostra só as 30 mais recentes
       } catch (e) {
+        console.error('Erro ao buscar mortes recentes:', e)
         this.deaths = []
       }
       this.deathsLoading = false

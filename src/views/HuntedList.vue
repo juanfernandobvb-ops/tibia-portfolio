@@ -107,7 +107,8 @@ export default {
     async fetchOnlineMembers() {
       this.loading = true
       try {
-        const guildRes = await fetch(`https://api.tibiadata.com/v4/guild/${encodeURIComponent(this.guild)}`)
+        const guildRes = await fetch(`https://api.tibiadata.com/v5/guild/${encodeURIComponent(this.guild)}`)
+        if (!guildRes.ok) throw new Error(`TibiaData returned ${guildRes.status}`)
         const guildData = await guildRes.json()
         const members = (guildData.guild && Array.isArray(guildData.guild.members)) ? guildData.guild.members : []
         this.onlineMembers = members.filter(m => m.status && m.status.toLowerCase() === 'online')
@@ -120,7 +121,8 @@ export default {
     async fetchAllMembers() {
       this.allMembersLoading = true
       try {
-        const guildRes = await fetch(`https://api.tibiadata.com/v4/guild/${encodeURIComponent(this.guild)}`)
+        const guildRes = await fetch(`https://api.tibiadata.com/v5/guild/${encodeURIComponent(this.guild)}`)
+        if (!guildRes.ok) throw new Error(`TibiaData returned ${guildRes.status}`)
         const guildData = await guildRes.json()
         this.allMembers = (guildData.guild && Array.isArray(guildData.guild.members)) ? guildData.guild.members : []
       } catch (e) {

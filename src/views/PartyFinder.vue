@@ -697,7 +697,12 @@ export default {
       this.characterData = null
 
       try {
-        const response = await fetch(`https://api.tibiadata.com/v4/character/${encodeURIComponent(this.newPlayer.characterName)}`)
+        const response = await fetch(`https://api.tibiadata.com/v5/character/${encodeURIComponent(this.newPlayer.characterName)}`)
+        if (response.status === 404) {
+          this.characterError = 'Personagem não encontrado ou não existe.'
+          return
+        }
+        if (!response.ok) throw new Error(`TibiaData returned ${response.status}`)
         const data = await response.json()
 
         if (data.character && data.character.character) {
